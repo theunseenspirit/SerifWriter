@@ -242,6 +242,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     if (kind === 'part') title = 'Untitled Part';
     const s = makeSection(session.project.id, kind, title, defaultContent(kind, session.project.meta));
     // sensible positions: front matter near the front, about at the end
+    if (kind === 'bibliography') afterId = null;
     let index = afterId ? session.sections.findIndex((x) => x.id === afterId) + 1 : session.sections.length;
     if (!afterId) {
       if (kind === 'title') index = 0;

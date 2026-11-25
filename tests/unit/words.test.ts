@@ -8,6 +8,7 @@ test('counts words and ignores Markdown syntax', () => {
   assert.equal(countWords('A note.[^1]\n\n[^1]: The note text.'), 5);
   assert.equal(countWords('![alt text](asset:abc) Hello'), 1);
   assert.equal(countWords(''), 0);
+  assert.equal(countWords('As argued [see @doe99, 33].\n\n@book{doe99, title = {A Long Title}}'), 4);
 });
 
 test('rounds like a manuscript cover page', () => {

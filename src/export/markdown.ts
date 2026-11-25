@@ -24,6 +24,7 @@ export async function exportMarkdown(project: Project, sections: Section[]): Pro
       continue;
     }
     const title = sectionTitle(s);
+    if (s.kind === 'bibliography') { out.push(`# ${title}\n\n\`\`\`bibtex\n${body}\n\`\`\``); continue; }
     const startsWithHeading = /^#\s/.test(body);
     const head = s.kind === 'part' ? `# Part: ${title}` : startsWithHeading ? '' : `# ${title}`;
     out.push([head, body].filter(Boolean).join('\n\n'));

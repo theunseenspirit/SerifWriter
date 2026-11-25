@@ -44,6 +44,7 @@ export class Editor {
     this.hint.textContent = info.hint;
     this.hint.hidden = !info.hint;
     this.el.dataset.kind = s.kind;
+    this.ta.spellcheck = s.kind !== 'bibliography';
     this.ta.placeholder = s.kind === 'toc' ? 'Nothing to write here — the contents are generated for you. (Add front matter with “title:” to rename the page.)'
       : s.kind === 'chapter' || s.kind === 'section' ? 'Begin writing…\n\nMarkdown works: *italic*, **bold**, > quotes, - lists, [^1] footnotes, and --- for a scene break.'
       : 'Write here…';

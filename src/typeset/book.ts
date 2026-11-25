@@ -5,6 +5,7 @@ import { applyBookRoot, effectiveSettings, getTemplate, injectTemplateCss } from
 import { ensureFonts } from './fonts.ts';
 import { formatLabel, hashString, toRoman, yieldToMain } from '../util.ts';
 import { KINDS, plainTitle } from '../model/defaults.ts';
+import { citeContext, type CiteCtx } from '../md/cite.ts';
 
 // Book assembly: per-section pagination jobs (cached by a content+settings
 // key, cancellable), then a cheap pass that inserts blank pages for recto
@@ -47,6 +48,7 @@ export class BookLayout {
   private groups = new Map<string, HTMLElement>();
   private frames = new WeakMap<HTMLElement, HTMLElement>();
   private blanks = new Map<string, HTMLElement>();
+  private cite: CiteCtx | null = null;
   pageRefs: PageRef[] = [];
   onChange: (info: LayoutInfo) => void = () => {};
   onAssembled: () => void = () => {};
@@ -75,6 +77,7 @@ export class BookLayout {
     this.project = project;
     this.setSections(sections);
     await this.applySettings();
+    this.refreshCite();
     const order = this.visibleIds();
     const front = first && order.includes(first) ? [first] : [];
     const toc = order.filter((id) => this.byId.get(id)!.kind === 'toc');
@@ -114,6 +117,7 @@ export class BookLayout {
   async refreshSettings(project: Project, priority?: string): Promise<void> {
     this.project = project;
     await this.applySettings();
+    this.refreshCite();
     const ids = this.visibleIds();
     if (priority && ids.includes(priority)) this.enqueue(priority, true);
     for (const id of ids) if (id !== priority) this.enqueue(id);
@@ -132,9 +136,18 @@ export class BookLayout {
     this.setSections(sections);
     if (priority) this.enqueue(priority, true);
     for (const id of changed) if (id !== priority) this.enqueue(id);
+    // New or changed citations renumber (and re-list) every citing section.
+    if (this.refreshCite()) for (const id of this.visibleIds()) { const k = this.byId.get(id)!; if (k.kind === 'bibliography' || k.content.includes('@')) this.enqueue(id); }
     // sections never laid out (new ones)
     for (const id of this.visibleIds()) if (!this.states.get(id)!.pages && !this.queue.includes(id)) this.enqueue(id);
     this.scheduleAssemble(true);
+  }
+
+  /** Recomputes the bibliography and citation order. True if it changed. */
+  private refreshCite(): boolean {
+    const before = this.cite?.key;
+    this.cite = citeContext(this.visibleIds().map((id) => this.byId.get(id)!), this.settings.citations);
+    return before !== this.cite?.key;
   }
 
   private visibleIds(): string[] {
@@ -147,6 +160,7 @@ export class BookLayout {
     if (sec.kind === 'title') extra = JSON.stringify(this.project.meta) + (this.settings.titlePage.layout === 'manuscript' ? Math.round(this.project.words / 100) : '');
     else if (sec.kind === 'copyright') extra = JSON.stringify(this.project.meta);
     else if (sec.kind === 'toc') extra = JSON.stringify(this.tocEntries());
+    if (this.cite && (sec.kind === 'bibliography' || sec.content.includes('@'))) extra += this.cite.key;
     return hashString(`${sec.kind}\u0000${sec.title}\u0000${sec.content}\u0000${extra}`) + this.settingsKey;
   }
 
@@ -171,6 +185,7 @@ export class BookLayout {
       assetUrl: (id: string) => this.assetUrls.get(id),
       bookWords: this.project.words,
       toc: [] as TocEntry[],
+      cite: this.cite,
     };
   }
 
@@ -378,6 +393,7 @@ export class BookLayout {
           if (lbl.dataset.label === 'chapter') setText(lbl, formatLabel(s.chapter.label, ++chapterNo));
           else setText(lbl, formatLabel(s.chapter.partLabel, ++partNo));
         }
+        for (const hn of Array.from(page.querySelectorAll<HTMLElement>('.h-num'))) setText(hn, sec.kind === 'chapter' ? `${chapterNo}.${hn.dataset.hnum}\u2002` : hn.dataset.hnum + '\u2002');
 
         const isOpener = page.dataset.opener === '1' || page.dataset.fixed === '1' || i === 0 && !!(st.pages![0].querySelector('.opener'));
         const front = !bodyStarted;

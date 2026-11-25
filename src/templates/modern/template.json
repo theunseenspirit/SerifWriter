@@ -23,6 +23,8 @@
     "footnotes": "page",
     "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "runin" },
     "titlePage": { "layout": "modern", "frame": "none", "corners": false },
+    "citations": "author-date",
+    "numberHeadings": false,
     "widows": 2,
     "orphans": 2,
     "hiddenKinds": []
