@@ -125,6 +125,32 @@ function isPlainParagraph(el: Element): boolean {
   return text.length > 0 && !el.querySelector('img');
 }
 
+/** Sets runs of three or more capitals (NATO, UNESCO, 1990s USA) in small caps, as book typography does; roman numerals are left alone. */
+function abbrSmallCaps(root: Element): void {
+  const re = /\b[A-Z][A-Z0-9&]{1,}[A-Z0-9]\b/g;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes: Text[] = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+  for (const t of nodes) {
+    if (!/[A-Z]{3}/.test(t.data) || t.parentElement?.closest('code, pre, .math, .lead-in, .abbr, .h-num, a')) continue;
+    const parts = t.data.split(re);
+    const caps = t.data.match(re) || [];
+    if (!caps.some((c) => !/^[IVXLCDM]+$/.test(c))) continue;
+    const frag = document.createDocumentFragment();
+    parts.forEach((txt, i) => {
+      if (txt) frag.append(txt);
+      const c = caps[i];
+      if (!c) return;
+      if (/^[IVXLCDM]+$/.test(c)) { frag.append(c); return; }
+      const span = document.createElement('span');
+      span.className = 'abbr';
+      span.textContent = c;
+      frag.append(span);
+    });
+    t.replaceWith(frag);
+  }
+}
+
 /** Post-processes rendered Markdown: heading roles, scene breaks, drop caps, figures, notes. */
 function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: OrnamentSet, numbered: boolean) {
   const s = ctx.settings;
@@ -264,6 +290,7 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
   } else {
     // page-bottom notes reference the number shown in the text
   }
+  if (s.type.abbrSmallCaps) for (const b of [...blocks, ...notes.values()]) abbrSmallCaps(b);
   return { blocks, notes, toc, leadTitle, leadSub };
 }
 

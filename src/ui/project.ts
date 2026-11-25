@@ -379,6 +379,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     for (const k of Object.keys(meta.extra)) if (!meta.extra[k]) delete meta.extra[k];
     meta.title = meta.title.trim() || 'Untitled Book';
     session.setMeta(meta);
+    editor.ta.lang = meta.language || 'en';
     titleBtn.textContent = plainTitle(meta);
     document.title = `${plainTitle(meta)} — SerifWriter`;
     const t = session.sections.find((s) => s.kind === 'title');
@@ -468,6 +469,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   currentCtx = ctx;
 
   // ───────── start ─────────
+  editor.ta.lang = project.meta.language || 'en'; // spellcheck in the book's language
   renderSidebar();
   if (currentId) editor.load(session.byId.get(currentId)!);
   paintStatus();

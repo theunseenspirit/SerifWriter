@@ -393,7 +393,10 @@ export class BookLayout {
       }
       if (isBodyStart) bodyStarted = true;
 
+      let secHead = ''; // the section in force: the first one starting on a page, else carried over
       st.pages.forEach((page, i) => {
+        const hs = page.querySelector('.h-section');
+        if (hs) secHead = (hs.textContent || '').trim();
         const frame = this.frameFor(page);
         place(frame, group!, cursor);
         cursor = frame.nextSibling;
@@ -436,7 +439,7 @@ export class BookLayout {
           const showFolio = rhs.folio !== 'none' && !fixedKind && (!isOpener || rhs.folioOnOpeners) && (!front || sec.kind === 'toc' || sec.kind === 'section');
           if (showHead) {
             const what = side === 'verso' ? rhs.verso : rhs.recto;
-            rh = what === 'title' ? bookTitle : what === 'author' ? meta.author : what === 'chapter' ? page.dataset.rh || '' : '';
+            rh = what === 'title' ? bookTitle : what === 'author' ? meta.author : what === 'chapter' ? page.dataset.rh || '' : what === 'section' ? secHead || page.dataset.rh || '' : '';
           }
           if (showFolio) {
             if (rhs.folio === 'top-outside' && !isOpener && !front) fh = folio;

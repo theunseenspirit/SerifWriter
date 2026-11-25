@@ -116,7 +116,7 @@ export type PageSizeId = '5x8' | '5.5x8.5' | '6x9' | 'royal' | '7x10' | 'a5' | '
 export type FontId = 'cardo' | 'ebgaramond' | 'crimsonpro' | 'librebaskerville' | 'cormorant';
 export type HeadingRole = 'part' | 'chapter' | 'section' | 'subsection' | 'minor' | 'runin';
 export type OrnamentSetId = 'classic' | 'victorian' | 'modern' | 'minimal' | 'none';
-export type RunningHeadContent = 'title' | 'author' | 'chapter' | 'none';
+export type RunningHeadContent = 'title' | 'author' | 'chapter' | 'section' | 'none';
 export type FolioPosition = 'bottom-center' | 'bottom-outside' | 'top-outside' | 'none';
 
 export interface TemplateSettings {
@@ -137,6 +137,7 @@ export interface TemplateSettings {
     indent: number; // em
     paragraphStyle: 'indent' | 'block';
     oldstyleNums: boolean;
+    abbrSmallCaps?: boolean; // NATO, UNESCO in small capitals
   };
   color: { ink: string; accent: string; paper: string };
   chapter: {
