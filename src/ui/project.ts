@@ -113,13 +113,15 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   const historyBtn = button('History', { icon: 'history', onClick: async () => (await import('./history.ts')).openHistory(ctx) });
   const exportBtn = button('Export', { icon: 'export', onClick: async () => (await import('./exportDialog.ts')).openExport(ctx, exportBtn) });
   const readBtn = button('Read', { icon: 'read', onClick: async () => (await import('./reader.ts')).openReader(ctx), title: 'Read the typeset book full-screen' });
+  const findBtn = iconButton('search', 'Find & replace in the whole book (⌘F)', () => void openFind());
+  const openFind = async () => (await import('./find.ts')).openFind(ctx);
   const focusBtn = iconButton('focus', 'Focus mode (⌘⇧F)', () => toggleFocus());
   const back = h('a', { class: 'btn icon pj-back', href: '#/', title: 'Library', 'aria-label': 'Back to library' }, icon('back'));
 
   const topbar = h('header', { class: 'pj-bar' },
     back, toggleSidebar, titleBtn, saveState, mirrorWarn,
     h('div', { class: 'pj-spacer' }),
-    designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview);
+    findBtn, designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview);
 
   const resizer = h('div', { class: 'pj-resizer', role: 'separator', 'aria-orientation': 'vertical', title: 'Drag to resize' });
   const statusbar = h('div', { class: 'pj-status' });
@@ -400,6 +402,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     const mod = e.metaKey || e.ctrlKey;
     if (mod && key.toLowerCase() === 's') { e.preventDefault(); void flush().then(() => toast('Saved.', { kind: 'success', timeout: 1200 })); return true; }
     if (mod && e.shiftKey && key.toLowerCase() === 'f') { e.preventDefault(); toggleFocus(); return true; }
+    if (mod && !e.shiftKey && key.toLowerCase() === 'f') { e.preventDefault(); void openFind(); return true; }
     if (mod && key === '\\') { e.preventDefault(); setPane('sidebar'); return true; }
     if (key === 'Escape' && view.classList.contains('focus')) { toggleFocus(false); return true; }
     return false;
