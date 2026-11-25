@@ -7,6 +7,7 @@ import { formatLabel, hashString, toRoman, yieldToMain } from '../util.ts';
 import { KINDS, plainTitle } from '../model/defaults.ts';
 import { citeContext, citeDependent, type CiteCtx } from '../md/cite.ts';
 import { loadMath, mathReady } from '../md/math.ts';
+import { indexEntries, pageList, type IndexEntry } from '../md/terms.ts';
 
 // Book assembly: per-section pagination jobs (cached by a content+settings
 // key, cancellable), then a cheap pass that inserts blank pages for recto
@@ -50,6 +51,7 @@ export class BookLayout {
   private frames = new WeakMap<HTMLElement, HTMLElement>();
   private blanks = new Map<string, HTMLElement>();
   private cite: CiteCtx | null = null;
+  private index: IndexEntry[] = [];
   pageRefs: PageRef[] = [];
   onChange: (info: LayoutInfo) => void = () => {};
   onAssembled: () => void = () => {};
@@ -150,7 +152,13 @@ export class BookLayout {
   /** Recomputes the bibliography and citation order. True if it changed. */
   private refreshCite(): boolean {
     const before = this.cite?.key;
-    this.cite = citeContext(this.visibleIds().map((id) => this.byId.get(id)!), this.settings.citations);
+    const secs = this.visibleIds().map((id) => this.byId.get(id)!);
+    this.cite = citeContext(secs, this.settings.citations);
+    // index terms: re-render the index page when the list of terms changes
+    if (secs.some((s) => s.kind === 'index')) {
+      const idx = indexEntries(secs.filter((s) => s.kind !== 'bibliography').map((s) => s.content));
+      if (JSON.stringify(idx) !== JSON.stringify(this.index)) { this.index = idx; for (const s of secs) if (s.kind === 'index') this.enqueue(s.id); }
+    }
     return before !== this.cite?.key;
   }
 
@@ -164,6 +172,7 @@ export class BookLayout {
     if (sec.kind === 'title') extra = JSON.stringify(this.project.meta) + (this.settings.titlePage.layout === 'manuscript' ? Math.round(this.project.words / 100) : '');
     else if (sec.kind === 'copyright') extra = JSON.stringify(this.project.meta);
     else if (sec.kind === 'toc') extra = JSON.stringify(this.tocEntries());
+    else if (sec.kind === 'index') extra = JSON.stringify(this.index);
     if (this.cite && (sec.kind === 'bibliography' || citeDependent(sec.content))) extra += this.cite.key;
     if (mathReady() && sec.content.includes('$')) extra += 'math';
     return hashString(`${sec.kind}\u0000${sec.title}\u0000${sec.content}\u0000${extra}`) + this.settingsKey;
@@ -191,6 +200,7 @@ export class BookLayout {
       bookWords: this.project.words,
       toc: [] as TocEntry[],
       cite: this.cite,
+      index: this.index,
     };
   }
 
@@ -329,6 +339,8 @@ export class BookLayout {
     const tocLabelPattern = /\{n\}/.test(s.chapter.label) ? '{n}' : '{Roman}.';
     const refs: PageRef[] = [];
     const tocPages = new Map<string, string>();
+    const hasIndex = ids.some((id) => this.byId.get(id)!.kind === 'index');
+    const termPages = new Map<string, string[]>();
     const firstBody = ids.find((id) => { const k = this.byId.get(id)!.kind; return k === 'chapter' || k === 'part'; }) ?? ids.find((id) => !KINDS[this.byId.get(id)!.kind].front);
     let bodyStarted = false;
     let frontNo = 0;
@@ -381,7 +393,10 @@ export class BookLayout {
       }
       if (isBodyStart) bodyStarted = true;
 
+      let secHead = ''; // the section in force: the first one starting on a page, else carried over
       st.pages.forEach((page, i) => {
+        const hs = page.querySelector('.h-section');
+        if (hs) secHead = (hs.textContent || '').trim();
         const frame = this.frameFor(page);
         place(frame, group!, cursor);
         cursor = frame.nextSibling;
@@ -391,6 +406,11 @@ export class BookLayout {
         const folioNum = bodyStarted ? ++bodyNo : ++frontNo;
         const folio = bodyStarted ? String(folioNum) : toRoman(folioNum).toLowerCase();
         for (const tid of (page.dataset.toc || '').split(' ').filter(Boolean)) if (!tocPages.has(tid)) tocPages.set(tid, folio);
+        if (hasIndex) for (const m of Array.from(page.querySelectorAll<HTMLElement>('.idx[data-idx]'))) {
+          const list = termPages.get(m.dataset.idx!) || [];
+          if (list.at(-1) !== folio) list.push(folio);
+          termPages.set(m.dataset.idx!, list);
+        }
 
         // chapter / part labels
         for (const lbl of Array.from(page.querySelectorAll<HTMLElement>('[data-label]'))) {
@@ -419,7 +439,7 @@ export class BookLayout {
           const showFolio = rhs.folio !== 'none' && !fixedKind && (!isOpener || rhs.folioOnOpeners) && (!front || sec.kind === 'toc' || sec.kind === 'section');
           if (showHead) {
             const what = side === 'verso' ? rhs.verso : rhs.recto;
-            rh = what === 'title' ? bookTitle : what === 'author' ? meta.author : what === 'chapter' ? page.dataset.rh || '' : '';
+            rh = what === 'title' ? bookTitle : what === 'author' ? meta.author : what === 'chapter' ? page.dataset.rh || '' : what === 'section' ? secHead || page.dataset.rh || '' : '';
           }
           if (showFolio) {
             if (rhs.folio === 'top-outside' && !isOpener && !front) fh = folio;
@@ -447,9 +467,10 @@ export class BookLayout {
       anchor = next;
     }
 
-    // contents page numbers and chapter numerals
+    // contents page numbers and chapter numerals; index page numbers
     let tocChapter = 0;
     for (const id of ids) {
+      if (this.byId.get(id)!.kind === 'index') for (const page of this.states.get(id)!.pages || []) for (const el of Array.from(page.querySelectorAll<HTMLElement>('.idx-pages[data-idx-ref]'))) { const pages = termPages.get(el.dataset.idxRef!); setText(el, pages ? `, ${pageList(pages)}` : ''); }
       if (this.byId.get(id)!.kind !== 'toc') continue;
       for (const page of this.states.get(id)!.pages || []) {
         for (const num of Array.from(page.querySelectorAll<HTMLElement>('.toc-num[data-toc-ref]'))) setText(num, tocPages.get(num.dataset.tocRef!) || '');

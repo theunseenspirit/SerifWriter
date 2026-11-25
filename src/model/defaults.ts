@@ -23,10 +23,11 @@ export const KINDS: Record<SectionKind, KindInfo> = {
   chapter: { label: 'Chapter', defaultTitle: 'Untitled Chapter', hint: '', front: false, start: 'chapter' },
   section: { label: 'Unnumbered chapter', defaultTitle: 'Preface', hint: 'Preface, introduction, afterword, acknowledgements — opens like a chapter but without a number.', front: false, start: 'chapter' },
   about: { label: 'About the author', defaultTitle: 'About the Author', hint: 'Set at the back of the book.', front: false, start: 'recto' },
+  index: { label: 'Index', defaultTitle: 'Index', hint: 'Generated from {^term} marks in your text (select a word and press ⌘⇧X), with page numbers. Use {^Term!Subterm} for a subentry.', front: false, start: 'recto' },
   bibliography: { label: 'Bibliography', defaultTitle: 'Bibliography', hint: 'Paste BibTeX (e.g. exported from Zotero). Cite with [@key], [@key, 33], [see @a; @b], [-@key] or @key. Cited works are listed; style is set in Design.', front: false, start: 'chapter' },
 };
 
-export const KIND_ORDER: SectionKind[] = ['chapter', 'part', 'section', 'title', 'copyright', 'dedication', 'epigraph', 'toc', 'about', 'bibliography'];
+export const KIND_ORDER: SectionKind[] = ['chapter', 'part', 'section', 'title', 'copyright', 'dedication', 'epigraph', 'toc', 'about', 'bibliography', 'index'];
 
 export const META_KEYS = ['title', 'subtitle', 'author', 'publisher', 'year', 'language'];
 

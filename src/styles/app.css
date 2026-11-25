@@ -22,7 +22,7 @@
   --radius: 8px;
   --ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --serif-ui: "SW Cardo", "SW EB Garamond", Georgia, serif;
-  --editor-font: "SW EB Garamond", "SW Cardo", Georgia, serif;
+  --editor-font: "SW EB Garamond", "SW Cardo", Georgia, "STIX Two Text", "STIX Two Math", "Cambria Math", "Segoe UI Symbol", serif;
   --editor-size: 19px;
   color-scheme: light;
 }
@@ -149,6 +149,11 @@ select.input { padding-right: 26px; }
 .st-table td, .st-table th { text-align: left; padding: 2px 8px 2px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .st-card details summary { cursor: pointer; color: var(--ink-3); font-size: 12px; margin-top: 6px; }
 .st-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--ink-ui); color: var(--panel); font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; box-shadow: var(--shadow); }
+.sym-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin-top: 10px; max-height: 50vh; overflow: auto; }
+.sym { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink-ui); cursor: pointer; }
+.sym:hover, .sym:focus-visible { background: var(--bg-2); }
+.sym-c { font: 22px/1.2 var(--editor-font); }
+.sym-n { font-size: 11px; color: var(--ink-3); }
 .find-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .find-opts { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; margin: 10px 0 8px; }
 .find-status { margin-left: auto; color: var(--ink-3); font-size: 12.5px; }

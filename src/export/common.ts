@@ -37,12 +37,12 @@ export async function collectBook(project: Project, all: Section[]): Promise<Boo
   for (const a of await repo.listAssets(project.id)) assets.set(a.id, { blob: a.blob, type: a.type, name: a.name });
   const urls = new Map<string, string>();
   const words = all.reduce((n, x) => n + (x.kind === 'title' || x.kind === 'toc' ? 0 : x.words), 0);
-  const ctx = { settings: s, meta: project.meta, assetUrl: (id: string) => { if (!assets.has(id)) return undefined; urls.set(id, `asset-export:${id}`); return `asset-export:${id}`; }, bookWords: words, toc: [], cite: citeContext(all.filter((x) => !settings.hiddenKinds.includes(x.kind)), settings.citations) };
+  const ctx = { settings: s, meta: project.meta, assetUrl: (id: string) => { if (!assets.has(id)) return undefined; urls.set(id, `asset-export:${id}`); return `asset-export:${id}`; }, bookWords: words, toc: [], cite: citeContext(all.filter((x) => !settings.hiddenKinds.includes(x.kind)), settings.citations), index: [] };
   const out: FlowSection[] = [];
   let chapter = 0;
   let part = 0;
   for (const sec of all) {
-    if (settings.hiddenKinds.includes(sec.kind) || sec.kind === 'toc') continue;
+    if (settings.hiddenKinds.includes(sec.kind) || sec.kind === 'toc' || sec.kind === 'index') continue; // page numbers mean nothing in reflowable formats
     const r = renderSection(sec, ctx);
     const body = document.createElement('div');
     let label = '';
@@ -137,6 +137,7 @@ figcaption { font-size: .85em; font-style: italic; margin-top: .4em; }
 a { color: inherit; }
 .bib-entry { text-indent: -2em; padding-left: 2em; text-align: left; margin-bottom: .4em; }
 .sc { font-variant: small-caps; }
+.abbr { font-variant: all-small-caps; letter-spacing: .04em; }
 p.ind { text-indent: 0; text-align: left; } p.ind1 { margin-left: 2em; } p.ind2 { margin-left: 4em; } p.ind3 { margin-left: 6em; } p.ind4 { margin-left: 8em; }
 .tbl-cap { text-indent: 0; text-align: center; font-size: .85em; }
 .cap-label { font-style: normal; font-variant: small-caps; }

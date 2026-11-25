@@ -8,7 +8,7 @@ const TAGS = new Set([
   'figcaption', 'span', 'div', 'section', 'abbr', 'cite', 'q', 'dfn', 'time', 'center', 'input', 'wbr', 'details', 'summary',
 ]);
 const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math', 'link', 'meta', 'base', 'form', 'textarea', 'select', 'button', 'frame', 'frameset', 'audio', 'video', 'canvas']);
-const ATTRS = new Set(['href', 'src', 'alt', 'title', 'class', 'id', 'colspan', 'rowspan', 'align', 'start', 'reversed', 'type', 'checked', 'disabled', 'lang', 'dir', 'width', 'height', 'cite', 'datetime', 'data-line', 'data-fn', 'data-tex', 'style']);
+const ATTRS = new Set(['href', 'src', 'alt', 'title', 'class', 'id', 'colspan', 'rowspan', 'align', 'start', 'reversed', 'type', 'checked', 'disabled', 'lang', 'dir', 'width', 'height', 'cite', 'datetime', 'data-line', 'data-fn', 'data-tex', 'data-idx', 'style']);
 const URL_OK = /^(https?:|mailto:|tel:|#|asset:|blob:|data:image\/(png|jpe?g|gif|webp|avif);)/i;
 
 function clean(node: Node): void {

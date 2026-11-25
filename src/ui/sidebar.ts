@@ -19,7 +19,7 @@ export interface SidebarOptions {
 }
 
 const KIND_GLYPH: Record<SectionKind, string> = {
-  title: 'T', copyright: '©', dedication: 'D', epigraph: '“', toc: '≡', part: 'P', chapter: '', section: '§', about: 'A', bibliography: 'B',
+  title: 'T', copyright: '©', dedication: 'D', epigraph: '“', toc: '≡', part: 'P', chapter: '', section: '§', about: 'A', bibliography: 'B', index: 'X',
 };
 
 export class Sidebar {

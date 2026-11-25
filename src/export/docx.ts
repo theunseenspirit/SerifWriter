@@ -11,7 +11,7 @@ import { roundedWords } from '../model/words.ts';
 const enc = new TextEncoder();
 const W_NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
 
-interface Fmt { b?: boolean; i?: boolean; strike?: boolean; code?: boolean; sup?: boolean; sub?: boolean; caps?: boolean; u?: boolean }
+interface Fmt { abbr?: boolean; b?: boolean; i?: boolean; strike?: boolean; code?: boolean; sup?: boolean; sub?: boolean; caps?: boolean; u?: boolean }
 
 class DocxWriter {
   body: string[] = [];
@@ -80,7 +80,7 @@ interface Ctx { w: DocxWriter; book: Awaited<ReturnType<typeof collectBook>>; no
 async function inlineRuns(node: Node, f: Fmt, ctx: Ctx): Promise<string> {
   let out = '';
   for (const n of Array.from(node.childNodes)) {
-    if (n.nodeType === Node.TEXT_NODE) { out += run((n as Text).data.replace(/\s+/g, ' '), f); continue; }
+    if (n.nodeType === Node.TEXT_NODE) { const t = (n as Text).data.replace(/\s+/g, ' '); out += run(f.abbr ? t.toLowerCase() : t, f); continue; }
     if (n.nodeType !== Node.ELEMENT_NODE) continue;
     const el = n as HTMLElement;
     const tag = el.tagName;
@@ -121,6 +121,7 @@ async function inlineRuns(node: Node, f: Fmt, ctx: Ctx): Promise<string> {
     if (tag === 'SUP') nf.sup = true;
     if (tag === 'SUB') nf.sub = true;
     if (el.classList.contains('lead-in')) nf.caps = true;
+    if (el.classList.contains('abbr')) nf.caps = nf.abbr = true; // Word's small caps act on lower case
     out += await inlineRuns(el, nf, ctx);
   }
   return out;

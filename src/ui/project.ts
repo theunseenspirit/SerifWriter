@@ -238,7 +238,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
 
   // ───────── section commands ─────────
   async function addSection(kind: SectionKind, afterId: string | null): Promise<void> {
-    if ((kind === 'title' || kind === 'toc') && session.sections.some((s) => s.kind === kind)) {
+    if ((kind === 'title' || kind === 'toc' || kind === 'index') && session.sections.some((s) => s.kind === kind)) {
       select(session.sections.find((s) => s.kind === kind)!.id);
       toast(`This book already has a ${KINDS[kind].label.toLowerCase()} page.`);
       return;
@@ -248,7 +248,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     if (kind === 'part') title = 'Untitled Part';
     const s = makeSection(session.project.id, kind, title, defaultContent(kind, session.project.meta));
     // sensible positions: front matter near the front, about at the end
-    if (kind === 'bibliography') afterId = null;
+    if (kind === 'bibliography' || kind === 'index') afterId = null;
     let index = afterId ? session.sections.findIndex((x) => x.id === afterId) + 1 : session.sections.length;
     if (!afterId) {
       if (kind === 'title') index = 0;
@@ -298,7 +298,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   async function duplicateSection(id: string): Promise<void> {
     const s = session.byId.get(id);
     if (!s) return;
-    if (s.kind === 'title' || s.kind === 'toc') { toast('A book has only one of those.'); return; }
+    if (s.kind === 'title' || s.kind === 'toc' || s.kind === 'index') { toast('A book has only one of those.'); return; }
     flushEditor();
     const copy: Section = { ...structuredClone(s), id: uid('s'), title: `${s.title} (copy)`, createdAt: Date.now(), updatedAt: Date.now() };
     session.addSection(copy, session.sections.indexOf(s) + 1);
@@ -379,6 +379,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     for (const k of Object.keys(meta.extra)) if (!meta.extra[k]) delete meta.extra[k];
     meta.title = meta.title.trim() || 'Untitled Book';
     session.setMeta(meta);
+    editor.ta.lang = meta.language || 'en';
     titleBtn.textContent = plainTitle(meta);
     document.title = `${plainTitle(meta)} — SerifWriter`;
     const t = session.sections.find((s) => s.kind === 'title');
@@ -407,6 +408,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     if (mod && key.toLowerCase() === 's') { e.preventDefault(); void flush().then(() => toast('Saved.', { kind: 'success', timeout: 1200 })); return true; }
     if (mod && e.shiftKey && key.toLowerCase() === 'f') { e.preventDefault(); toggleFocus(); return true; }
     if (mod && !e.shiftKey && key.toLowerCase() === 'f') { e.preventDefault(); void openFind(); return true; }
+    if (mod && e.shiftKey && key.toLowerCase() === 'l') { e.preventDefault(); void import('./symbolPicker.ts').then((m) => m.openSymbolPicker(ctx)); return true; }
     if (mod && e.shiftKey && key.toLowerCase() === 'k') { e.preventDefault(); void import('./citePicker.ts').then((m) => m.openCitePicker(ctx)); return true; }
     if (mod && key === '\\') { e.preventDefault(); setPane('sidebar'); return true; }
     if (key === 'Escape' && view.classList.contains('focus')) { toggleFocus(false); return true; }
@@ -468,6 +470,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   currentCtx = ctx;
 
   // ───────── start ─────────
+  editor.ta.lang = project.meta.language || 'en'; // spellcheck in the book's language
   renderSidebar();
   if (currentId) editor.load(session.byId.get(currentId)!);
   paintStatus();

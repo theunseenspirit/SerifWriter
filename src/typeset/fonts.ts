@@ -79,7 +79,9 @@ export function injectFontFaces(): void {
   document.head.appendChild(style);
 }
 
-export const fontStack = (id: FontId) => `"${FONTS[id].family}", "${FONTS[id].name}", Georgia, serif`;
+// Symbols the Latin subsets lack (∀ ¬ □ ⊢) fall back to a serif symbol font rather than whatever the system picks.
+export const SYMBOL_FALLBACK = '"STIX Two Text", "STIX Two Math", "Cambria Math", "Segoe UI Symbol"';
+export const fontStack = (id: FontId) => `"${FONTS[id].family}", "${FONTS[id].name}", Georgia, ${SYMBOL_FALLBACK}, serif`;
 
 /** Waits until the faces a template uses are loaded, so measurements are final. */
 export async function ensureFonts(ids: FontId[]): Promise<void> {
