@@ -95,7 +95,8 @@ add `legal_name`, `address`, `email`, `phone`, `pen_name`, `surname` and `short_
 page understands `{author} {title} {year} {thisYear} {publisher} {font}`.
 
 **Page types** (*Add* in the sidebar): title page, copyright, dedication, epigraph, contents
-(generated, with page numbers), part divider, chapter, unnumbered chapter (preface, afterword…),
+(generated, with page numbers — parts and chapters, plus sections and subsections as you choose in
+*Design ▸ Headings*), part divider, chapter, unnumbered chapter (preface, afterword…),
 about the author, bibliography. Drag to reorder, or select one and press ⌥↑ / ⌥↓.
 
 ### Citations and bibliography

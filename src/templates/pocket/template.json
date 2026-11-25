@@ -25,6 +25,7 @@
     "titlePage": { "layout": "classic", "frame": "none", "corners": false },
     "citations": "author-date",
     "numberHeadings": false,
+    "tocDepth": 2,
     "widows": 2,
     "orphans": 2,
     "hiddenKinds": []

@@ -474,7 +474,10 @@ export class BookLayout {
       if (this.byId.get(id)!.kind !== 'toc') continue;
       for (const page of this.states.get(id)!.pages || []) {
         for (const num of Array.from(page.querySelectorAll<HTMLElement>('.toc-num[data-toc-ref]'))) setText(num, tocPages.get(num.dataset.tocRef!) || '');
-        for (const lbl of Array.from(page.querySelectorAll<HTMLElement>('.toc-label[data-toc-label]'))) setText(lbl, formatLabel(tocLabelPattern, ++tocChapter));
+        for (const lbl of Array.from(page.querySelectorAll<HTMLElement>('.toc-label[data-toc-label], .toc-label[data-toc-hnum]'))) {
+          if (lbl.dataset.tocLabel) setText(lbl, formatLabel(tocLabelPattern, ++tocChapter));
+          else setText(lbl, lbl.dataset.chap ? `${tocChapter}.${lbl.dataset.tocHnum}` : lbl.dataset.tocHnum!);
+        }
       }
     }
     this.pageRefs = refs;

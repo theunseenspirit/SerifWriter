@@ -21,6 +21,7 @@
     "titlePage": { "layout": "manuscript", "frame": "none", "corners": false },
     "citations": "author-date",
     "numberHeadings": false,
+    "tocDepth": 2,
     "widows": 1,
     "orphans": 1,
     "hiddenKinds": ["copyright", "toc", "dedication", "epigraph", "about"]

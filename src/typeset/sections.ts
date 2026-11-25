@@ -12,7 +12,9 @@ export { sectionTitle };
 
 export interface TocEntry {
   id: string;
-  kind: 'part' | 'chapter' | 'section' | 'back';
+  kind: 'part' | 'chapter' | 'section' | 'back' | 'sub' | 'subsub'; // sub/subsub: headings inside a chapter
+  hnum?: string; // local section number ("1.2"), prefixed with the chapter's at assembly
+  inChapter?: boolean;
   title: string; // inline HTML
   plain: string;
 }
@@ -225,6 +227,14 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
         span.dataset.hnum = hn;
         el.prepend(span);
       }
+      if (role === 'section' || role === 'subsection') {
+        const id = `${sec.id}:h${++n}`;
+        el.dataset.tocId = id;
+        const title = el.cloneNode(true) as HTMLElement;
+        title.querySelector('.h-num')?.remove();
+        title.querySelectorAll('.idx, .fn-ref').forEach((x) => x.remove());
+        toc.push({ id, kind: role === 'section' ? 'sub' : 'subsub', title: title.innerHTML, plain: textOf(title.innerHTML), hnum: el.querySelector<HTMLElement>('.h-num')?.dataset.hnum, inChapter: sec.kind === 'chapter' });
+      }
       if (role === 'runin') el.classList.add('h-minor');
       blocks.push(el);
       afterBreak = true;
@@ -398,9 +408,11 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
       const op = opener('toc', title, '', set, s, '');
       const blocks: HTMLElement[] = [];
       for (const e of ctx.toc) {
+        if ((e.kind === 'sub' && s.tocDepth < 2) || (e.kind === 'subsub' && s.tocDepth < 3)) continue;
         const row = h('div', `toc-entry toc-${e.kind}`);
         const label = h('span', 'toc-label');
         if (e.kind === 'chapter') label.dataset.tocLabel = e.id;
+        if (e.hnum) { label.dataset.tocHnum = e.hnum; if (e.inChapter) label.dataset.chap = '1'; label.textContent = e.hnum; }
         row.append(label, h('span', 'toc-title', e.title), h('span', 'toc-leader'));
         const num = h('span', 'toc-num', '0');
         num.dataset.tocRef = e.id;
