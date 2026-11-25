@@ -2,6 +2,7 @@ import MarkdownIt from 'markdown-it';
 import footnote from 'markdown-it-footnote';
 import { sanitizeInto } from './sanitize.ts';
 import { citations, type CiteCtx } from './cite.ts';
+import { math, typesetMath } from './math.ts';
 
 // CommonMark + GFM (tables, strikethrough, autolinks, task lists) + footnotes,
 // with smart typography. Every block carries data-line so the preview can be
@@ -71,6 +72,7 @@ export function markdown(lang = 'en'): MarkdownIt {
   md.use(taskLists);
   md.use(lineNumbers);
   md.use(citations);
+  md.use(math);
   footnoteRenderers(md);
   // Keep ‘---’ inline as an em dash and ‘--’ as an en dash (typographer default).
   cache.set(key, md);
@@ -80,12 +82,15 @@ export function markdown(lang = 'en'): MarkdownIt {
 /** Renders Markdown to a sanitised DocumentFragment. */
 export function renderMarkdown(src: string, opts: { lang?: string; lineOffset?: number; cite?: CiteCtx | null } = {}): DocumentFragment {
   const html = markdown(opts.lang).render(src, { lineOffset: opts.lineOffset || 0, cite: opts.cite || undefined });
-  return sanitizeInto(html);
+  const frag = sanitizeInto(html);
+  if (src.includes('$')) typesetMath(frag);
+  return frag;
 }
 
 /** Renders inline Markdown (titles, labels) to sanitised HTML. */
 export function renderInline(src: string, lang = 'en'): string {
   const frag = sanitizeInto(markdown(lang).renderInline(src));
+  if (src.includes('$')) typesetMath(frag);
   const div = document.createElement('div');
   div.appendChild(frag);
   return div.innerHTML;

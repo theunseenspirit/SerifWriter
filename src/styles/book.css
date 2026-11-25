@@ -153,6 +153,8 @@
 .sw-book .bib-num { display: inline-block; min-width: 2em; text-indent: 0; }
 .sw-book .cite-missing, .sw-book .math-error { color: #b3261e; }
 .sw-book .sc { font-variant-caps: small-caps; }
+.sw-book math { font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', math; font-size: 1.05em; }
+.sw-book .math-block { text-align: center; margin: .4em 0; text-indent: 0; }
 
 /* Drop caps and lead-ins */
 .sw-book.has-dropcap .pg-content p.dropcap::first-letter {

@@ -95,6 +95,7 @@ async function inlineRuns(node: Node, f: Fmt, ctx: Ctx): Promise<string> {
       }
       continue;
     }
+    if (el.dataset.tex) { out += run(el.dataset.tex, { ...f, i: true }); continue; } // Word has no MathML; keep the TeX
     if (tag === 'BR') { out += '<w:r><w:br/></w:r>'; continue; }
     if (tag === 'IMG') {
       const src = el.getAttribute('src') || '';

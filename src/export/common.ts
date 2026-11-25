@@ -5,6 +5,7 @@ import { formatLabel, escapeHtml } from '../util.ts';
 import { plainTitle } from '../model/defaults.ts';
 import * as repo from '../db/repo.ts';
 import { citeContext } from '../md/cite.ts';
+import { loadMath } from '../md/math.ts';
 
 // Shared preparation for the reflowable formats (EPUB, DOCX, HTML).
 
@@ -29,6 +30,7 @@ export interface BookData {
 
 export async function collectBook(project: Project, all: Section[]): Promise<BookData> {
   const settings = effectiveSettings(project);
+  await loadMath(all.map((x) => x.content));
   // Reflowable formats always get footnotes as notes, never page-bottom layout.
   const s: TemplateSettings = { ...settings, footnotes: 'page' };
   const assets = new Map<string, { blob: Blob; type: string; name: string }>();
@@ -135,6 +137,8 @@ figcaption { font-size: .85em; font-style: italic; margin-top: .4em; }
 a { color: inherit; }
 .bib-entry { text-indent: -2em; padding-left: 2em; text-align: left; margin-bottom: .4em; }
 .sc { font-variant: small-caps; }
+math { font-family: 'STIX Two Math', 'Cambria Math', math; }
+.math-block { text-align: center; margin: .5em 0; }
 sup.fn-ref, a.noteref { font-size: .7em; vertical-align: super; line-height: 0; text-decoration: none; }
 .footnotes { margin-top: 2.5em; font-size: .85em; border-top: 1px solid #ccc; padding-top: .8em; }
 .footnotes p, aside.fn p { text-indent: 0; margin: 0 0 .5em; }
