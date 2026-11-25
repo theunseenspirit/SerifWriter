@@ -127,7 +127,8 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     findBtn, statsBtn, designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview);
 
   const resizer = h('div', { class: 'pj-resizer', role: 'separator', 'aria-orientation': 'vertical', title: 'Drag to resize' });
-  const statusbar = h('div', { class: 'pj-status' });
+  const statusbar = h('button', { class: 'pj-status', type: 'button', title: 'Writing stats' });
+  statusbar.addEventListener('click', () => void openStats());
   const editorCol = h('div', { class: 'pj-editor' }, editor.el, statusbar);
   const layout = h('div', { class: 'pj-main' }, sidebar.el, editorCol, resizer, preview.el);
   const view = h('div', { class: 'project' }, topbar, layout);

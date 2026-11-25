@@ -251,6 +251,8 @@ select.input { padding-right: 26px; }
 .no-preview .pj-main { grid-template-columns: var(--sb-w) 1fr 0 0; }
 .no-sidebar.no-preview .pj-main { grid-template-columns: 0 1fr 0 0; }
 .no-sidebar .sidebar, .no-preview .preview, .no-preview .pj-resizer { display: none; }
+/* Each pane keeps its own column, so hiding one never shifts the others into it. */
+.pj-main > .sidebar { grid-column: 1; } .pj-main > .pj-editor { grid-column: 2; } .pj-main > .pj-resizer { grid-column: 3; } .pj-main > .preview { grid-column: 4; }
 .pj-resizer { cursor: col-resize; background: var(--line); width: 1px; justify-self: center; position: relative; }
 .pj-resizer::after { content: ''; position: absolute; inset: 0 -4px; }
 .pj-resizer:hover { background: var(--line-2); width: 2px; }
@@ -294,7 +296,8 @@ select.input { padding-right: 26px; }
 .editor-ta::placeholder { color: var(--ink-3); opacity: .7; }
 .editor[data-kind="title"] .editor-ta, .editor[data-kind="toc"] .editor-ta { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 15px; }
 .editor-measure { position: absolute; visibility: hidden; left: -9999px; top: 0; }
-.pj-status { display: flex; gap: 16px; align-items: center; height: 28px; padding: 0 20px; font-size: 11.5px; color: var(--ink-3); border-top: 1px solid var(--line); background: var(--bg); flex: none; font-variant-numeric: tabular-nums; }
+.pj-status { width: 100%; border: 0; font-family: inherit; text-align: left; cursor: pointer; display: flex; gap: 16px; align-items: center; height: 28px; padding: 0 20px; font-size: 11.5px; color: var(--ink-3); border-top: 1px solid var(--line); background: var(--bg); flex: none; font-variant-numeric: tabular-nums; }
+.pj-status:hover { color: var(--ink-2); }
 .pj-status-right { margin-left: auto; }
 
 /* Focus mode */
@@ -424,7 +427,7 @@ select.input { padding-right: 26px; }
   .pj-bar .btn:not(.icon) { width: 34px; padding: 0; justify-content: center; }
 }
 @media (max-width: 760px) {
-  .pj-main { grid-template-columns: 0 1fr 0 0; }
+  .pj-main, .project.no-sidebar .pj-main, .project.no-preview .pj-main { grid-template-columns: 0 1fr 0 0; }
   .sidebar, .preview, .pj-resizer { display: none; }
   .home { padding: 20px 16px 32px; }
   .shelf { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 24px 16px; }
