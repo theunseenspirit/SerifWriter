@@ -59,6 +59,7 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 | You type | You get |
 |---|---|
 | `---` on its own line, with a blank line before it | a scene-break ornament |
+| <kbd>Tab</kbd> at the start of a line | an indented line, set one per line — premises, propositions, verse (two tabs: further in) |
 | `Text.[^1]` … `[^1]: The note.` | a footnote at the foot of the page (or chapter endnotes) |
 | `Text.^[The note, inline.]` | the same footnote, written in place |
 | `# Heading` at the top of a chapter | the chapter's title (the opening page) |
@@ -135,7 +136,7 @@ for books that contain math. Errors show in red, with the message on hover.
 | ⌘⇧F | focus mode (Esc to leave) |
 | ⌘\\ | show/hide the sidebar |
 | Return in a list or quote | continues it; Return on an empty item ends it |
-| Tab / ⇧Tab in a list | indent / outdent |
+| Tab / ⇧Tab | indent / outdent the line or the selected lines (in a list: the item) |
 | Reading mode | ← → Space PageUp PageDown Home End, Esc to close |
 
 Click anywhere on a page in the preview to jump to that paragraph in the editor. Drop a `.bib`,
