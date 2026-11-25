@@ -1,0 +1,30 @@
+{
+  "id": "victorian",
+  "name": "Ornate Victorian",
+  "description": "A gilt-edged 19th-century volume: Libre Baskerville, ruled running heads, scrollwork headpieces, an ornate framed title page and roman chapter numerals.",
+  "cover": { "leather": "#1C3A2A", "foil": "#C8A24E", "style": "leather" },
+  "accentPresets": [
+    { "name": "Bottle green", "value": "#1F4730" },
+    { "name": "Oxblood", "value": "#6E1A1A" },
+    { "name": "Prussian blue", "value": "#1D3B5C" },
+    { "name": "Old gold", "value": "#8A6A22" },
+    { "name": "Aubergine", "value": "#4A2540" }
+  ],
+  "settings": {
+    "page": { "size": "6x9", "margins": { "inside": 0.9, "outside": 0.75, "top": 0.95, "bottom": 0.9 }, "twoSided": true, "headSep": 0.3, "footSkip": 0.42 },
+    "type": { "body": "librebaskerville", "display": "librebaskerville", "size": 9.8, "leading": 1.2, "justify": true, "hyphenate": true, "indent": 1.4, "paragraphStyle": "indent", "oldstyleNums": false },
+    "color": { "ink": "#1F1A14", "accent": "#1F4730", "paper": "#FAF4E6" },
+    "chapter": { "start": "recto", "sink": 0.2, "label": "Chapter {Roman}.", "partLabel": "Book {Roman}", "ornament": true },
+    "dropCap": { "enabled": true, "lines": 3 },
+    "leadIn": { "mode": "words", "words": 2, "afterBreak": false },
+    "ornaments": "victorian",
+    "sceneBreak": "ornament",
+    "runningHeads": { "verso": "title", "recto": "chapter", "align": "center", "folio": "top-outside", "folioOnOpeners": true, "manuscript": false },
+    "footnotes": "page",
+    "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "runin" },
+    "titlePage": { "layout": "classic", "frame": "ornate", "corners": true },
+    "widows": 2,
+    "orphans": 2,
+    "hiddenKinds": []
+  }
+}

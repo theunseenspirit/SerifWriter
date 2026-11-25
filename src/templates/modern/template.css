@@ -1,0 +1,41 @@
+/* Modern Literary — flush-left openings, big numerals, quiet running heads. */
+.tpl-modern {
+  & .pg-head { font-size: 8pt; letter-spacing: .16em; text-transform: uppercase; }
+  & .pg-head .pg-fh { letter-spacing: 0; font-size: 9.5pt; text-transform: none; }
+  & .pg-foot { font-size: 9.5pt; }
+
+  & .opener { text-align: left; margin-bottom: .5in; }
+  & .op-label { font-size: 44pt; line-height: 1; font-weight: 300; color: var(--accent); font-variant-numeric: lining-nums; }
+  & .op-label:empty { display: none; }
+  & .op-title { font-size: 17pt; line-height: 1.25; font-style: italic; margin-top: 14pt; text-wrap: balance; }
+  & .op-sub { margin-top: 6pt; font-size: 10.5pt; letter-spacing: .08em; text-transform: uppercase; }
+  & .op-orn { margin-top: 16pt; text-align: left; }
+  & .op-orn svg { width: 1.6in; height: auto; }
+  & .opener-small .op-title { font-style: normal; font-size: 15pt; }
+
+  & p.leadin-line::first-line { letter-spacing: .05em; }
+
+  & .title-page { text-align: left; align-items: flex-start; }
+  & .tp-title { margin-top: .9in; font-size: 32pt; line-height: 1.05; font-weight: 300; text-wrap: balance; }
+  & .tp-rule { margin-top: 18pt; width: 100%; text-align: left; }
+  & .tp-rule svg { width: 1in; margin-left: -.35in; }
+  & .tp-subtitle { margin-top: 12pt; font-size: 13pt; font-style: italic; }
+  & .tp-by { display: none; }
+  & .tp-author { margin-top: .6in; font-size: 12pt; letter-spacing: .16em; text-transform: uppercase; }
+  & .tp-fleuron { display: none; }
+  & .tp-publisher { font-size: 9pt; letter-spacing: .14em; text-transform: uppercase; }
+  & .tp-year { margin-top: 3pt; font-size: 9pt; }
+
+  & .part-page { text-align: left; }
+  & .pt-label { font-size: 11pt; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+  & .pt-title { font-size: 26pt; line-height: 1.15; font-weight: 300; margin-top: 10pt; }
+  & .pt-orn { text-align: left; }
+  & .pt-orn svg { width: 1.2in; margin-left: -.42in; }
+
+  & .h-section { text-align: left; font-size: 10pt; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  & .h-subsection { text-align: left; font-style: italic; }
+  & .toc-part { letter-spacing: .14em; text-transform: uppercase; font-size: 9pt; justify-content: flex-start; color: var(--accent); }
+  & .toc-entry .toc-label { min-width: 2em; color: var(--accent); }
+  & .toc-entry .toc-leader { visibility: hidden; }
+  & .dedication-page, & .epigraph-page { text-align: left; }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "modern",
+  "name": "Modern Literary",
+  "description": "A contemporary literary-fiction interior: Crimson Pro, generous white space, large chapter numerals, flush-left openings and a first line in small caps.",
+  "cover": { "leather": "#26343A", "foil": "#E9E2D2", "style": "cloth" },
+  "accentPresets": [
+    { "name": "Deep teal", "value": "#2F5D62" },
+    { "name": "Slate", "value": "#4A5560" },
+    { "name": "Rust", "value": "#A0472B" },
+    { "name": "Olive", "value": "#5D6332" },
+    { "name": "Charcoal", "value": "#2B2B2B" }
+  ],
+  "settings": {
+    "page": { "size": "5.5x8.5", "margins": { "inside": 0.875, "outside": 0.65, "top": 0.85, "bottom": 0.85 }, "twoSided": true, "headSep": 0.32, "footSkip": 0.4 },
+    "type": { "body": "crimsonpro", "display": "crimsonpro", "size": 11.5, "leading": 1.12, "justify": true, "hyphenate": true, "indent": 1.5, "paragraphStyle": "indent", "oldstyleNums": true },
+    "color": { "ink": "#1D1F21", "accent": "#2F5D62", "paper": "#FDFCF9" },
+    "chapter": { "start": "any", "sink": 0.24, "label": "{n}", "partLabel": "Part {n}", "ornament": true },
+    "dropCap": { "enabled": false, "lines": 2 },
+    "leadIn": { "mode": "line", "words": 4, "afterBreak": false },
+    "ornaments": "modern",
+    "sceneBreak": "ornament",
+    "runningHeads": { "verso": "author", "recto": "title", "align": "outside", "folio": "top-outside", "folioOnOpeners": false, "manuscript": false },
+    "footnotes": "page",
+    "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "runin" },
+    "titlePage": { "layout": "modern", "frame": "none", "corners": false },
+    "widows": 2,
+    "orphans": 2,
+    "hiddenKinds": []
+  }
+}

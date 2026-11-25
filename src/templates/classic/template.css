@@ -1,0 +1,51 @@
+/* Classic Leather — after the demo.tex prototype.
+   \spaced = upper case, letter-spacing .18em; sizes are LaTeX's 11pt-class sizes. */
+.tpl-classic {
+  & .spaced, & .pg-head, & .op-label, & .op-title, & .tp-title, & .tp-by, & .tp-author,
+  & .tp-publisher, & .tp-year, & .pt-label, & .pt-title, & .h-section, & .toc-part {
+    text-transform: uppercase;
+    letter-spacing: .18em;
+  }
+  & .pg-head { font-size: 9pt; }
+  & .pg-foot { font-size: 10pt; }
+
+  & .opener { margin-bottom: .42in; }
+  & .op-label { color: var(--accent); font-size: 10pt; line-height: 12pt; padding-left: .18em; }
+  & .op-title { font-size: 21pt; line-height: 26pt; margin-top: 10pt; padding-left: .18em; }
+  & .op-sub { font-style: italic; margin-top: 8pt; }
+  & .op-orn { margin-top: 10pt; }
+  & .op-orn svg { width: 1.4in; }
+  & .opener-small .op-title { font-size: 15pt; line-height: 20pt; }
+
+  & .lead-in { letter-spacing: .02em; }
+
+  /* Title page: double rule at .55in/.62in, corner flourishes at .68in */
+  & .tp-frame { --tp-inset: .55in; border: 1.1pt solid var(--ink); }
+  & .tp-frame::after { content: ''; position: absolute; inset: calc(.07in - 1.1pt); border: .35pt solid var(--ink); }
+  & .tp-corner { width: .42in; height: .42in; }
+  & .tp-corner.tl { top: calc(var(--by) + .68in); left: calc(var(--bx) + .68in); }
+  & .tp-corner.tr { top: calc(var(--by) + .68in); right: calc(var(--bleed) - var(--bx) + .68in); }
+  & .tp-corner.bl { bottom: calc(var(--bleed) + .68in); left: calc(var(--bx) + .68in); }
+  & .tp-corner.br { bottom: calc(var(--bleed) + .68in); right: calc(var(--bleed) - var(--bx) + .68in); }
+  & .tp-title { margin-top: 1.05in; font-size: 30pt; line-height: 36pt; padding-left: .18em; }
+  & .tp-rule { margin-top: 16pt; }
+  & .tp-rule svg { width: 2.3in; }
+  & .tp-subtitle { margin-top: 14pt; font-size: 12pt; font-style: italic; }
+  & .tp-by { margin-top: .9in; font-size: 10pt; padding-left: .18em; }
+  & .tp-author { margin-top: 8pt; font-size: 14.4pt; padding-left: .18em; }
+  & .tp-fleuron svg { width: .45in; }
+  & .tp-publisher { margin-top: 12pt; font-size: 9pt; padding-left: .18em; }
+  & .tp-year { margin-top: 4pt; font-size: 9pt; padding-left: .18em; }
+  & .tp-foot-gap { height: .35in; }
+
+  & .pt-label { font-size: 10pt; color: var(--accent); padding-left: .18em; }
+  & .pt-title { font-size: 24pt; line-height: 30pt; margin-top: 12pt; padding-left: .18em; }
+  & .pt-orn svg { width: 1.6in; }
+
+  & .h-section { font-size: 9.5pt; padding-left: .18em; }
+  & .h-subsection { font-style: italic; }
+
+  & .dedication-page .ded-body { font-style: italic; font-size: 11.5pt; }
+  & .toc-part { font-size: 9pt; color: var(--accent); }
+  & .toc-chapter .toc-title { font-variant-caps: small-caps; letter-spacing: .03em; }
+}

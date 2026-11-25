@@ -1,0 +1,26 @@
+{
+  "id": "manuscript",
+  "name": "Manuscript",
+  "description": "Standard manuscript format for agents and editors: US Letter, 12 pt, double-spaced, 1-inch margins, ragged right, Surname / TITLE / page header, word count on the cover page.",
+  "cover": { "leather": "#E6DDC8", "foil": "#2A2A2A", "style": "paper" },
+  "accentPresets": [
+    { "name": "Black", "value": "#111111" }
+  ],
+  "settings": {
+    "page": { "size": "letter", "margins": { "inside": 1, "outside": 1, "top": 1, "bottom": 1 }, "twoSided": false, "headSep": 0.5, "footSkip": 0.5 },
+    "type": { "body": "crimsonpro", "display": "crimsonpro", "size": 12, "leading": 2.0, "justify": false, "hyphenate": false, "indent": 3, "paragraphStyle": "indent", "oldstyleNums": false },
+    "color": { "ink": "#111111", "accent": "#111111", "paper": "#FFFFFF" },
+    "chapter": { "start": "any", "sink": 0.333, "label": "Chapter {Word}", "partLabel": "Part {Word}", "ornament": false },
+    "dropCap": { "enabled": false, "lines": 3 },
+    "leadIn": { "mode": "none", "words": 4, "afterBreak": false },
+    "ornaments": "none",
+    "sceneBreak": "hash",
+    "runningHeads": { "verso": "title", "recto": "title", "align": "outside", "folio": "none", "folioOnOpeners": true, "manuscript": true },
+    "footnotes": "endnotes",
+    "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "minor" },
+    "titlePage": { "layout": "manuscript", "frame": "none", "corners": false },
+    "widows": 1,
+    "orphans": 1,
+    "hiddenKinds": ["copyright", "toc", "dedication", "epigraph", "about"]
+  }
+}

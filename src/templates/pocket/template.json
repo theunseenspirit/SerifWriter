@@ -1,0 +1,30 @@
+{
+  "id": "pocket",
+  "name": "Pocket Edition",
+  "description": "A small, elegant 5 × 8 hardback: EB Garamond text, Cormorant display, italic running heads, roman numerals and a two-line initial.",
+  "cover": { "leather": "#1B2A44", "foil": "#D4B46A", "style": "cloth" },
+  "accentPresets": [
+    { "name": "Midnight", "value": "#1F3A5F" },
+    { "name": "Claret", "value": "#7B2335" },
+    { "name": "Moss", "value": "#4B5D3A" },
+    { "name": "Sepia", "value": "#6B4A2B" },
+    { "name": "Graphite", "value": "#333333" }
+  ],
+  "settings": {
+    "page": { "size": "5x8", "margins": { "inside": 0.78, "outside": 0.6, "top": 0.72, "bottom": 0.8 }, "twoSided": true, "headSep": 0.26, "footSkip": 0.4 },
+    "type": { "body": "ebgaramond", "display": "cormorant", "size": 10.8, "leading": 1.14, "justify": true, "hyphenate": true, "indent": 1.1, "paragraphStyle": "indent", "oldstyleNums": true },
+    "color": { "ink": "#1B1B1F", "accent": "#1F3A5F", "paper": "#FCFAF4" },
+    "chapter": { "start": "any", "sink": 0.28, "label": "{Roman}", "partLabel": "Part {Roman}", "ornament": true },
+    "dropCap": { "enabled": true, "lines": 2 },
+    "leadIn": { "mode": "words", "words": 3, "afterBreak": true },
+    "ornaments": "minimal",
+    "sceneBreak": "asterism",
+    "runningHeads": { "verso": "title", "recto": "chapter", "align": "center", "folio": "bottom-center", "folioOnOpeners": false, "manuscript": false },
+    "footnotes": "page",
+    "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "runin" },
+    "titlePage": { "layout": "classic", "frame": "none", "corners": false },
+    "widows": 2,
+    "orphans": 2,
+    "hiddenKinds": []
+  }
+}

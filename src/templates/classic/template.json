@@ -1,0 +1,31 @@
+{
+  "id": "classic",
+  "name": "Classic Leather",
+  "description": "An Easton Press–style leather-bound classic: Cardo, mirrored margins, spaced capitals, a deep red rubric, drop caps and fleurons.",
+  "cover": { "leather": "#4A1714", "foil": "#C9A55A", "style": "leather" },
+  "accentPresets": [
+    { "name": "Oxblood", "value": "#7A1E1E" },
+    { "name": "Forest", "value": "#2E4A33" },
+    { "name": "Navy", "value": "#1F3557" },
+    { "name": "Gilt", "value": "#8A6420" },
+    { "name": "Plum", "value": "#5A2A4A" },
+    { "name": "Ink", "value": "#1E1A16" }
+  ],
+  "settings": {
+    "page": { "size": "6x9", "margins": { "inside": 0.95, "outside": 0.8, "top": 0.9, "bottom": 1.0 }, "twoSided": true, "headSep": 0.28, "footSkip": 0.45 },
+    "type": { "body": "cardo", "display": "cardo", "size": 11, "leading": 1.18, "justify": true, "hyphenate": true, "indent": 1.2, "paragraphStyle": "indent", "oldstyleNums": true },
+    "color": { "ink": "#1E1A16", "accent": "#7A1E1E", "paper": "#FCF8EF" },
+    "chapter": { "start": "any", "sink": 0.333, "label": "Chapter {Word}", "partLabel": "Part {Word}", "ornament": true },
+    "dropCap": { "enabled": true, "lines": 3 },
+    "leadIn": { "mode": "words", "words": 4, "afterBreak": true },
+    "ornaments": "classic",
+    "sceneBreak": "ornament",
+    "runningHeads": { "verso": "title", "recto": "chapter", "align": "center", "folio": "bottom-center", "folioOnOpeners": true, "manuscript": false },
+    "footnotes": "page",
+    "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "runin" },
+    "titlePage": { "layout": "classic", "frame": "double", "corners": true },
+    "widows": 2,
+    "orphans": 2,
+    "hiddenKinds": []
+  }
+}

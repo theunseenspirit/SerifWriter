@@ -1,0 +1,234 @@
+/* ───────────────────────── Book pages: structure shared by every template ─────────────────────────
+   Geometry comes from CSS variables set by templates/index.ts → bookVars().
+   Everything is in absolute units (pt, in), so screen, print and PDF match exactly. */
+
+.sw-book {
+  --bleed: 0in;
+  color: var(--ink);
+}
+
+.sw-book .page {
+  --bx: 0in;
+  --by: var(--bleed);
+  position: relative;
+  box-sizing: border-box;
+  width: calc(var(--page-w) + var(--bleed));
+  height: calc(var(--page-h) + 2 * var(--bleed));
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs);
+  line-height: var(--lh);
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  font-synthesis: style small-caps;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  text-align: left;
+  contain: layout paint style;
+}
+.sw-book.onum .page { font-variant-numeric: oldstyle-nums proportional-nums; }
+.sw-book.two-sided .page.verso { --bx: var(--bleed); }
+
+.sw-book .pg-body {
+  position: absolute;
+  top: calc(var(--by) + var(--m-top));
+  left: calc(var(--bx) + var(--m-in));
+  width: calc(var(--page-w) - var(--m-in) - var(--m-out));
+  height: calc(var(--page-h) - var(--m-top) - var(--m-bot));
+}
+.sw-book.two-sided .page.verso .pg-body,
+.sw-book.two-sided .page.verso .pg-head,
+.sw-book.two-sided .page.verso .pg-foot { left: calc(var(--bx) + var(--m-out)); }
+
+.sw-book .pg-content { position: relative; }
+.sw-book .pg-content > :first-child:not(.opener):not(.fixed-content) { margin-top: 0; }
+.sw-book .pg-notes {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  font-size: .82em; line-height: 1.28;
+}
+.sw-book .pg-notes:not(:empty) { padding-top: .7em; }
+.sw-book .pg-notes:not(:empty)::before {
+  content: ''; position: absolute; top: .25em; left: 0; width: 1.1in; border-top: .4pt solid currentColor; opacity: .55;
+}
+
+/* Running head and folio. Baselines sit head-sep above / foot-skip below the text block. */
+.sw-book .pg-head, .sw-book .pg-foot {
+  position: absolute;
+  left: calc(var(--bx) + var(--m-in));
+  width: calc(var(--page-w) - var(--m-in) - var(--m-out));
+  line-height: 1;
+  height: 1em;
+  white-space: nowrap;
+  text-align: center;
+  font-variant-numeric: inherit;
+}
+.sw-book .pg-head { top: calc(var(--by) + var(--m-top) - var(--head-sep) - .8em); font-size: .82em; }
+.sw-book .pg-foot { top: calc(var(--by) + var(--page-h) - var(--m-bot) + var(--foot-skip) - .8em); font-size: .9em; }
+.sw-book .pg-rh { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: top; }
+.sw-book .pg-fh { position: absolute; top: 0; }
+.sw-book .page.recto .pg-fh { right: 0; }
+.sw-book .page.verso .pg-fh { left: 0; }
+.sw-book.rh-outside .page.recto .pg-head { text-align: right; padding-right: 2.6em; box-sizing: border-box; }
+.sw-book.rh-outside .page.verso .pg-head { text-align: left; padding-left: 2.6em; box-sizing: border-box; }
+.sw-book.rh-outside:not(.folio-top-outside) .pg-head { padding: 0; }
+.sw-book.folio-bottom-outside .page.recto .pg-foot { text-align: right; }
+.sw-book.folio-bottom-outside .page.verso .pg-foot { text-align: left; }
+.sw-book.one-sided .pg-head.ms { text-align: right; padding: 0; }
+
+/* ───────── Flowed text ───────── */
+.sw-book .pg-content p { margin: 0; text-indent: var(--indent); text-align: var(--text-align); hyphens: var(--hyphens); -webkit-hyphens: var(--hyphens); }
+.sw-book.justify .pg-content p.sw-split { text-align-last: justify; }
+.sw-book .pg-content p.sw-cont,
+.sw-book .pg-content p.noindent,
+.sw-book .pg-content p.dropcap,
+.sw-book .pg-content p.first,
+.sw-book .pg-content p.after-break,
+.sw-book .pg-content :is(h1, h2, h3, h4, h5, h6, .opener, figure, table, pre, ul, ol, hr, .endnotes) + p,
+.sw-book .pg-content > p:first-child { text-indent: 0; }
+.sw-book.para-block .pg-content p { text-indent: 0; margin-bottom: calc(var(--lh) * .6em); }
+
+.sw-book .pg-content a { color: inherit; text-decoration: none; }
+.sw-book .pg-content strong { font-weight: 700; }
+.sw-book .pg-content del { text-decoration-thickness: .06em; }
+.sw-book .pg-content mark { background: none; font-style: italic; }
+.sw-book .pg-content code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .84em; font-variant-ligatures: none; }
+.sw-book .pg-content pre {
+  margin: calc(var(--lh) * .5em) 0; padding: .35em .6em; font-size: .9em; line-height: 1.3;
+  white-space: pre-wrap; overflow-wrap: anywhere; border-left: 1.5pt solid color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.sw-book .pg-content pre code { font-size: .82em; }
+
+.sw-book .pg-content blockquote { margin: calc(var(--lh) * .5em) 1.4em; font-size: .94em; }
+.sw-book .pg-content blockquote p { text-indent: 0; }
+.sw-book .pg-content blockquote p + p { text-indent: var(--indent); }
+
+.sw-book .pg-content ul, .sw-book .pg-content ol { margin: calc(var(--lh) * .5em) 0; padding-left: 1.7em; }
+.sw-book .pg-content li { text-align: var(--text-align); hyphens: var(--hyphens); -webkit-hyphens: var(--hyphens); }
+.sw-book .pg-content li p { text-indent: 0; }
+.sw-book .pg-content li.sw-cont { list-style: none; }
+.sw-book .pg-content li.sw-cont::marker { content: ''; }
+.sw-book .pg-content ul ul, .sw-book .pg-content ol ol, .sw-book .pg-content ul ol, .sw-book .pg-content ol ul { margin: 0; }
+.sw-book .pg-content li.task { list-style: none; }
+.sw-book .pg-content li.task input { margin: 0 .45em 0 -1.25em; width: .8em; height: .8em; vertical-align: -.05em; accent-color: var(--ink); }
+
+.sw-book .pg-content table { width: 100%; border-collapse: collapse; margin: calc(var(--lh) * .5em) 0; font-size: .88em; line-height: 1.3; font-variant-numeric: lining-nums tabular-nums; }
+.sw-book .pg-content th, .sw-book .pg-content td { padding: .28em .45em; border-bottom: .4pt solid color-mix(in srgb, var(--ink) 40%, transparent); vertical-align: top; text-align: left; }
+.sw-book .pg-content th { font-weight: normal; font-variant-caps: small-caps; letter-spacing: .03em; border-bottom: .8pt solid var(--ink); }
+.sw-book .pg-content thead tr:first-child th { border-top: .8pt solid var(--ink); }
+
+.sw-book .pg-content figure { margin: calc(var(--lh) * .5em) 0; text-align: center; text-indent: 0; }
+.sw-book .pg-content img { max-width: 100%; max-height: calc(var(--page-h) - var(--m-top) - var(--m-bot) - 4em); height: auto; vertical-align: middle; }
+.sw-book .pg-content figcaption { font-size: .85em; font-style: italic; margin-top: .4em; text-align: center; }
+
+.sw-book .scene-break {
+  display: flex; align-items: center; justify-content: center;
+  height: calc(var(--lh) * 1em); margin: calc(var(--lh) * .5em) 0;
+  color: var(--accent); text-indent: 0;
+}
+.sw-book .scene-break svg { height: .95em; width: auto; }
+.sw-book .scene-break .sb-glyph { font-size: 1.05em; line-height: 1; color: var(--ink); }
+.sw-book .scene-break .sb-hash { color: var(--ink); }
+
+/* Headings inside a chapter, by role (templates refine these). */
+:where(.sw-book .pg-content) :where(h1, h2, h3, h4, h5, h6) { font-weight: normal; font-size: 1em; line-height: var(--lh); margin: 0; text-indent: 0; break-after: avoid; }
+.sw-book .h-section { font-family: var(--font-display); text-align: center; margin: calc(var(--lh) * 1em) 0 calc(var(--lh) * .5em) !important; }
+.sw-book .h-subsection { text-align: center; font-style: italic; margin: calc(var(--lh) * 1em) 0 calc(var(--lh) * .5em) !important; }
+.sw-book .h-minor { font-variant-caps: small-caps; letter-spacing: .04em; margin: calc(var(--lh) * .5em) 0 0 !important; }
+.sw-book .h-runin { font-style: italic; margin: calc(var(--lh) * .5em) 0 0 !important; }
+
+/* Footnotes */
+.sw-book .fn-ref { font-size: .68em; line-height: 0; vertical-align: .55em; font-variant-numeric: lining-nums; margin-left: .04em; }
+.sw-book .fn { margin: 0; text-align: var(--text-align); hyphens: var(--hyphens); -webkit-hyphens: var(--hyphens); }
+.sw-book .fn p { margin: 0; text-indent: 0; display: inline; }
+.sw-book .fn p + p::before { content: ' '; }
+.sw-book .fn-num { font-variant-numeric: lining-nums; font-size: .8em; vertical-align: .3em; line-height: 0; margin-right: .35em; }
+.sw-book .endnotes { margin-top: calc(var(--lh) * 1.5em); font-size: .86em; line-height: 1.3; }
+.sw-book .endnotes .en-title { text-align: center; font-variant-caps: small-caps; letter-spacing: .08em; margin-bottom: .6em; }
+.sw-book .endnotes .fn { margin-bottom: .45em; }
+
+/* Drop caps and lead-ins */
+.sw-book.has-dropcap .pg-content p.dropcap::first-letter {
+  -webkit-initial-letter: var(--dc-lines);
+  initial-letter: var(--dc-lines);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-style: normal; font-weight: normal; font-variant: normal; letter-spacing: 0;
+  margin-right: .1em;
+}
+@supports not ((initial-letter: 2) or (-webkit-initial-letter: 2)) {
+  .sw-book.has-dropcap .pg-content p.dropcap::first-letter {
+    float: left; font-size: var(--dc-size); line-height: .78; margin: .06em .08em 0 0;
+  }
+}
+.sw-book .lead-in { font-variant-caps: small-caps; }
+.sw-book .pg-content p.leadin-line::first-line { font-variant-caps: small-caps; }
+
+/* ───────── Openers (chapter, unnumbered, about, contents) ───────── */
+.sw-book .opener { padding-top: var(--sink); text-align: center; text-indent: 0; margin: 0 0 calc(var(--lh) * 2em); }
+.sw-book .opener.opener-small { padding-top: calc(var(--sink) * .55); }
+.sw-book .op-title { margin: 0; font-family: var(--font-display); font-weight: normal; font-size: 1.6em; line-height: 1.2; text-wrap: balance; }
+.sw-book .op-label { font-family: var(--font-display); }
+.sw-book .op-label:empty { display: none; }
+.sw-book .op-orn { color: var(--accent); line-height: 0; }
+.sw-book .op-orn svg, .sw-book .tp-rule svg, .sw-book .tp-fleuron svg, .sw-book .pt-orn svg { height: auto; display: inline-block; }
+
+/* ───────── Fixed pages ───────── */
+.sw-book .page.fixed .pg-content { height: 100%; }
+.sw-book .fixed-content { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; text-indent: 0; }
+.sw-book .fixed-content.overflowing { height: auto; }
+
+.sw-book .title-page { align-items: center; text-align: center; }
+.sw-book .title-page > * { flex: none; max-width: 100%; }
+.sw-book .title-page .tp-spacer { flex: 1 1 auto; }
+.sw-book .tp-title { font-family: var(--font-display); text-wrap: balance; white-space: pre-line; }
+.sw-book .tp-rule, .sw-book .tp-fleuron, .sw-book .pt-orn { color: var(--accent); line-height: 0; }
+.sw-book .tp-frame {
+  --tp-inset: .55in;
+  position: absolute; box-sizing: border-box; pointer-events: none;
+  top: calc(var(--by) + var(--tp-inset)); left: calc(var(--bx) + var(--tp-inset));
+  width: calc(var(--page-w) - 2 * var(--tp-inset)); height: calc(var(--page-h) - 2 * var(--tp-inset));
+}
+.sw-book .tp-corner { position: absolute; color: var(--accent); line-height: 0; }
+.sw-book .tp-corner svg { width: 100%; height: 100%; display: block; }
+.sw-book .tp-corner.tr svg { transform: scaleX(-1); }
+.sw-book .tp-corner.bl svg { transform: scaleY(-1); }
+.sw-book .tp-corner.br svg { transform: scale(-1, -1); }
+
+.sw-book .copyright-page { justify-content: flex-end; font-size: .78em; line-height: 1.4; }
+.sw-book .copyright-page p { text-indent: 0 !important; text-align: left; margin: 0 0 .75em; hyphens: manual; }
+
+.sw-book .dedication-page { padding-top: var(--third); text-align: center; }
+.sw-book .dedication-page p { text-indent: 0 !important; text-align: center; margin: 0 0 .5em; hyphens: manual; }
+.sw-book .dedication-page .ded-orn { color: var(--accent); margin-top: 1.4em; line-height: 0; }
+.sw-book .dedication-page .ded-orn svg { width: .35in; height: auto; }
+
+.sw-book .epigraph-page { padding-top: var(--third); padding-left: .35in; padding-right: .35in; }
+.sw-book .epigraph-page blockquote { margin: 0 0 .9em; font-size: 1em; }
+.sw-book .epigraph-page p { text-indent: 0 !important; font-style: italic; text-align: left; hyphens: manual; margin: 0 0 .4em; }
+.sw-book .epigraph-page p.attrib { font-style: normal; text-align: right; margin-top: .5em; }
+.sw-book .epigraph-page p.attrib em { font-style: italic; }
+
+.sw-book .part-page { padding-top: calc(var(--page-h) * .3 - var(--m-top)); text-align: center; align-items: stretch; }
+.sw-book .pt-title { font-family: var(--font-display); font-weight: normal; margin: 0; text-wrap: balance; }
+.sw-book .pt-orn { margin-top: 14pt; }
+.sw-book .pt-body { margin-top: 1.4in; text-align: center; }
+.sw-book .pt-body p { text-indent: 0 !important; text-align: center; font-style: italic; }
+
+/* Contents */
+.sw-book .toc-entry { display: flex; align-items: baseline; text-indent: 0; margin: 0; }
+.sw-book .toc-entry .toc-label { flex: none; min-width: 1.8em; }
+.sw-book .toc-entry .toc-title { flex: 0 1 auto; }
+.sw-book .toc-entry .toc-leader { flex: 1 1 1em; min-width: 1em; margin: 0 .45em; border-bottom: .7pt dotted color-mix(in srgb, var(--ink) 55%, transparent); transform: translateY(-.28em); }
+.sw-book .toc-entry .toc-num { flex: none; min-width: 1.4em; text-align: right; }
+.sw-book .toc-part { justify-content: center; margin-top: calc(var(--lh) * 1em); margin-bottom: calc(var(--lh) * .25em); text-align: center; }
+.sw-book .toc-part .toc-leader, .sw-book .toc-part .toc-num { display: none; }
+.sw-book .toc-back { margin-top: calc(var(--lh) * .5em); }
+
+/* Blank pages */
+.sw-book .page.blank .pg-head, .sw-book .page.blank .pg-foot { display: none; }
+
+/* In-flow part divider (from a part-level heading inside a chapter file) */
+.sw-book .inflow-part { height: calc(var(--page-h) - var(--m-top) - var(--m-bot)); }

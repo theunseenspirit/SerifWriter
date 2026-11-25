@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SerifWriter</title>
+    <meta name="description" content="A private, offline writing app that typesets your words into book pages as you write." />
+    <meta name="theme-color" content="#2B201B" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="SerifWriter" />
+    <style>
+      /* Painted before any script runs, so launch never flashes white. */
+      html, body { margin: 0; height: 100%; background: #F3EFE7; }
+      @media (prefers-color-scheme: dark) { html, body { background: #1C1A18; } }
+      #boot { position: fixed; inset: 0; display: grid; place-items: center; font: 15px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #8A8073; letter-spacing: .2em; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <div id="boot">SerifWriter</div>
+    <div id="app"></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

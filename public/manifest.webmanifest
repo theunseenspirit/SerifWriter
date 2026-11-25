@@ -1,0 +1,20 @@
+{
+  "name": "SerifWriter",
+  "short_name": "SerifWriter",
+  "description": "A private, offline writing app that typesets your words into book pages as you write.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#F3EFE7",
+  "theme_color": "#2B201B",
+  "categories": ["productivity", "books"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "file_handlers": [
+    { "action": "./", "accept": { "text/markdown": [".md", ".markdown"] } }
+  ]
+}
