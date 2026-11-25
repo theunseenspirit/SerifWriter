@@ -70,7 +70,17 @@ export interface Project {
   words: number;
   ui: ProjectUI;
   mirror?: MirrorState;
-  goal?: number;
+  goal?: number; // target length in words
+  stats?: WritingStats;
+}
+
+/** Writing habits, recorded as you write (local only). */
+export interface WritingStats {
+  /** Per local day (YYYY-MM-DD): net words added, active minutes, book length at day's end. */
+  days: Record<string, { w: number; m: number; t: number }>;
+  /** Active minutes by hour of day, 0–23. */
+  hours: number[];
+  dailyGoal?: number;
 }
 
 export interface SnapshotMeta {

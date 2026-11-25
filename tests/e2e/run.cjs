@@ -107,6 +107,12 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await page.locator('.find-dlg input').fill('arendt 1958');
   await page.keyboard.press('Enter');
   check('⌘⇧K searches the bibliography and inserts a citation', (await textOf(page)).trimEnd().endsWith('[@arendt58]'));
+  await page.waitForTimeout(800);
+  await page.locator('.sb-totals').click();
+  await page.waitForSelector('.stats-dlg .st-chart svg');
+  const stats = await page.evaluate(() => ({ tiles: document.querySelectorAll('.stats-dlg .st-tile').length, today: document.querySelector('.stats-dlg .st-num')?.textContent, charts: document.querySelectorAll('.stats-dlg .st-chart svg').length }));
+  check('writing stats show today’s words and the habit charts', stats.tiles >= 9 && /^\+\d/.test(stats.today) && stats.charts >= 3, JSON.stringify(stats));
+  await page.keyboard.press('Escape');
 
   // ── service worker: works offline ──
   await page.evaluate(() => navigator.serviceWorker.ready);

@@ -136,6 +136,25 @@ for books that contain math. Errors show in red, with the message on hover.
 Click anywhere on a page in the preview to jump to that paragraph in the editor. Drop a `.bib`,
 `.md` or `.txt` file onto the editor to insert its text, or an image to place it.
 
+## Writing stats
+
+Click the word count at the foot of the sidebar (or the chart icon in the top bar) to see how
+you write. Everything is recorded as you type and stays on your computer.
+
+* **Habits:** words today (against an optional daily goal), your writing streak and best streak,
+  the last seven days, an average writing day, time spent writing and your pace in words an hour,
+  and the book's length against an optional target.
+* **Words per day** for the last 30 days, with your goal marked and a table view.
+* **Writing days** for the last six months, as a calendar.
+* **When you write:** minutes by hour of day, to find your best hours.
+* **Book length over time**, and **chapter lengths** side by side, to see the book's balance.
+* **The prose:** average and longest sentence, Flesch reading ease (English), vocabulary variety
+  per 1,000 words, and your most-used words, so repetitions stand out.
+
+Words per day are *net*: cutting a page counts against the day, as it should. Writing time counts
+the stretches you are typing, with pauses under two minutes. Stats travel with the book in
+backups and the folder mirror.
+
 ## Design
 
 Six templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
