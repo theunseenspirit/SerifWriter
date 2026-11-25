@@ -164,6 +164,7 @@ export interface TemplateSettings {
   titlePage: { layout: 'classic' | 'modern' | 'manuscript'; frame: 'double' | 'single' | 'ornate' | 'none'; corners: boolean };
   citations: 'author-date' | 'numeric' | 'note';
   numberHeadings: boolean; // 1.1-style numbers on sections and subsections
+  tocDepth: number; // contents: 1 chapters, 2 + sections, 3 + subsections
   widows: number;
   orphans: number;
   hiddenKinds: SectionKind[];

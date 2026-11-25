@@ -52,6 +52,11 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
     s.addEventListener('change', () => set(path, s.value));
     return s;
   };
+  const selectNum = (path: string, options: [number, string][]) => {
+    const s = select(path, options.map(([v, l]) => [String(v), l]));
+    s.onchange = () => set(path, Number(s.value));
+    return s;
+  };
   const toggle = (path: string, label: string) => {
     const c = h('input', { type: 'checkbox' }) as HTMLInputElement;
     c.checked = !!getPath(cur, path);
@@ -264,7 +269,8 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
       row('Layout', select('titlePage.layout', [['classic', 'Centred, classic'], ['modern', 'Flush left, modern'], ['manuscript', 'Manuscript cover page']]))),
     sec('Headings in your text',
       h('p', { class: 'ds-note' }, 'What each Markdown heading level means in this book. A chapter-level heading at the top of a chapter becomes its title.'),
-      ...(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const).map((k, i) => row(`${'#'.repeat(i + 1)} heading`, select(`headings.${k}`, headingRoles)))),
+      ...(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const).map((k, i) => row(`${'#'.repeat(i + 1)} heading`, select(`headings.${k}`, headingRoles))),
+      row('Contents shows', selectNum('tocDepth', [[1, 'Parts and chapters'], [2, 'Chapters and sections'], [3, 'Sections and subsections']]))),
     sec('Notes & flow',
       row('Citations', select('citations', [['author-date', 'Author–date (Doe 2001, 33)'], ['numeric', 'Numeric [1, 33]'], ['note', 'Notes (Chicago footnotes)']]), 'How [@key] citations are set. Add a Bibliography section with your BibTeX.'),
       row('', toggle('numberHeadings', 'Number sections (1.1, 1.2…)')),
