@@ -10,7 +10,8 @@ export type SectionKind =
   | 'chapter'
   | 'section' // unnumbered chapter: preface, introduction, afterword, acknowledgements…
   | 'about'
-  | 'bibliography'; // BibTeX, set as the reference list
+  | 'bibliography' // BibTeX, set as the reference list
+  | 'index'; // generated from {^term} marks
 
 export interface CursorState {
   start: number;

@@ -6,6 +6,7 @@ import { formatLabel, escapeHtml } from '../util.ts';
 import { roundedWords } from '../model/words.ts';
 import { FONTS } from './fonts.ts';
 import { bibliographyHtml, LABEL, type CiteCtx } from '../md/cite.ts';
+import type { IndexEntry } from '../md/terms.ts';
 import { plainTitle, sectionTitle } from '../model/defaults.ts';
 export { sectionTitle };
 
@@ -23,6 +24,7 @@ export interface RenderCtx {
   bookWords: number;
   toc: TocEntry[]; // only used when rendering the contents page
   cite: CiteCtx | null;
+  index: IndexEntry[]; // only used when rendering the index
 }
 
 export interface Rendered {
@@ -379,6 +381,20 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
         blocks.push(row);
       }
       return { ...base, opener: op, blocks, rh: textOf(title) };
+    }
+    case 'index': {
+      const title = renderInline(fmString(fm.data.title) || sec.title || 'Index', lang);
+      const row = (cls: string, text: string, ref: string) => { const r = h('div', `idx-entry ${cls}`, `<span class="idx-term">${escapeHtml(text)}</span><span class="idx-pages" data-idx-ref="${escapeHtml(ref)}"></span>`); return r; };
+      const blocks: HTMLElement[] = [];
+      let letter = '';
+      for (const e of ctx.index) {
+        const l = e.term.normalize('NFD')[0].toUpperCase();
+        if (l !== letter) { letter = l; blocks.push(h('div', 'idx-letter keep-next', escapeHtml(/\p{L}/u.test(l) ? l : '#'))); }
+        blocks.push(row('', e.term, e.term));
+        for (const s of e.subs) blocks.push(row('idx-sub', s, `${e.term}!${s}`));
+      }
+      if (!blocks.length) blocks.push(h('p', 'idx-empty', 'Mark terms in your text with {^Term} — or select a word and press ⌘⇧X — and they appear here with their page numbers.'));
+      return { ...base, opener: opener('toc', title, '', set, s, sec.id), blocks, toc: [{ id: sec.id, kind: 'back', title, plain: textOf(title) }], rh: textOf(title) };
     }
     case 'bibliography': {
       const title = renderInline(fmString(fm.data.title) || sec.title || 'Bibliography', lang);

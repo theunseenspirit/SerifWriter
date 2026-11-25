@@ -153,6 +153,11 @@
 .sw-book .bib-num { display: inline-block; min-width: 2em; text-indent: 0; }
 .sw-book .cite-missing, .sw-book .math-error { color: #b3261e; }
 .sw-book .sc { font-variant-caps: small-caps; }
+.sw-book .idx { display: none; }
+.sw-book .pg-content .idx-entry { text-indent: -1.5em; padding-left: 1.5em; font-size: .9em; line-height: 1.35; text-align: left; }
+.sw-book .pg-content .idx-sub { padding-left: 2.7em; }
+.sw-book .pg-content .idx-letter { font-variant-caps: small-caps; letter-spacing: .08em; color: var(--accent); margin: calc(var(--lh) * .6em) 0 .2em; }
+.sw-book .pg-content .idx-letter:first-child { margin-top: 0; }
 .sw-book .pg-content p.ind { text-indent: 0; text-align: left; margin-left: calc(var(--n) * 2em); }
 .sw-book .pg-content p.ind1 { --n: 1; } .sw-book .pg-content p.ind2 { --n: 2; } .sw-book .pg-content p.ind3 { --n: 3; } .sw-book .pg-content p.ind4 { --n: 4; }
 .sw-book .pg-content p.ind + p:not(.ind) { text-indent: 0; margin-top: calc(var(--lh) * .5em); }

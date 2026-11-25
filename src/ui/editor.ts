@@ -130,6 +130,7 @@ export class Editor {
       if (k === 'b' && !e.shiftKey) { e.preventDefault(); this.wrap('**', '**', 'bold'); return; }
       if (k === 'i' && !e.shiftKey) { e.preventDefault(); this.wrap('*', '*', 'italic'); return; }
       if (k === 'n' && e.shiftKey) { e.preventDefault(); this.wrap('^[', ']', 'Note.'); return; } // inline footnote
+      if (k === 'x' && e.shiftKey) { e.preventDefault(); this.markIndex(); return; }
       if (k === 'k' && !e.shiftKey) {
         e.preventDefault();
         const { selectionStart: a, selectionEnd: b, value } = this.ta;
@@ -172,6 +173,15 @@ export class Editor {
     }
     const marker = bullet ? bullet : `${Number(num) + 1}${delim}`;
     this.insert(`\n${indent}${marker}${space}${task ? '[ ] ' : ''}`);
+  }
+
+  /** Marks the selection for the index: "Plato" → "Plato{^Plato}"; with no selection, an empty mark to fill in. */
+  private markIndex(): void {
+    const { selectionStart: a, selectionEnd: b, value } = this.ta;
+    const term = value.slice(a, b).trim().replace(/[{}\n]/g, ' ');
+    this.ta.setSelectionRange(b, b);
+    this.insert(`{^${term}}`);
+    if (!term) this.ta.setSelectionRange(b + 2, b + 2);
   }
 
   /** Tab indents the line (or every selected line) with a tab; ⇧Tab takes one indent away. */

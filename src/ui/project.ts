@@ -238,7 +238,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
 
   // ───────── section commands ─────────
   async function addSection(kind: SectionKind, afterId: string | null): Promise<void> {
-    if ((kind === 'title' || kind === 'toc') && session.sections.some((s) => s.kind === kind)) {
+    if ((kind === 'title' || kind === 'toc' || kind === 'index') && session.sections.some((s) => s.kind === kind)) {
       select(session.sections.find((s) => s.kind === kind)!.id);
       toast(`This book already has a ${KINDS[kind].label.toLowerCase()} page.`);
       return;
@@ -248,7 +248,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     if (kind === 'part') title = 'Untitled Part';
     const s = makeSection(session.project.id, kind, title, defaultContent(kind, session.project.meta));
     // sensible positions: front matter near the front, about at the end
-    if (kind === 'bibliography') afterId = null;
+    if (kind === 'bibliography' || kind === 'index') afterId = null;
     let index = afterId ? session.sections.findIndex((x) => x.id === afterId) + 1 : session.sections.length;
     if (!afterId) {
       if (kind === 'title') index = 0;
@@ -298,7 +298,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   async function duplicateSection(id: string): Promise<void> {
     const s = session.byId.get(id);
     if (!s) return;
-    if (s.kind === 'title' || s.kind === 'toc') { toast('A book has only one of those.'); return; }
+    if (s.kind === 'title' || s.kind === 'toc' || s.kind === 'index') { toast('A book has only one of those.'); return; }
     flushEditor();
     const copy: Section = { ...structuredClone(s), id: uid('s'), title: `${s.title} (copy)`, createdAt: Date.now(), updatedAt: Date.now() };
     session.addSection(copy, session.sections.indexOf(s) + 1);

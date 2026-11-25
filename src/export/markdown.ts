@@ -17,7 +17,7 @@ export async function exportMarkdown(project: Project, sections: Section[]): Pro
   if (m.language && m.language !== 'en') fm.language = m.language;
   const out: string[] = [];
   for (const s of sections) {
-    if (s.kind === 'title' || s.kind === 'toc') continue;
+    if (s.kind === 'title' || s.kind === 'toc' || s.kind === 'index') continue;
     const body = splitFrontMatter(s.content).body.trim();
     if (s.kind === 'copyright' || s.kind === 'dedication' || s.kind === 'epigraph') {
       if (body) out.push(`<!-- ${s.kind} -->\n\n${body}`);

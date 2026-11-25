@@ -19,7 +19,7 @@ export function stripForCount(md: string): string {
     .replace(/https?:\/\/\S+/g, ' ')
     .replace(/^@\w+\s*\{[\s\S]*?\}\s*$/gm, ' ') // BibTeX entries
     .replace(/-?@\w[\w:.#$%&+?<>~/-]*/g, ' ') // citation keys
-    .replace(/\{#[\w:.-]+\}|^Table:/gm, ' ') // labels
+    .replace(/\{#[\w:.-]+\}|\{\^[^{}\n]+\}|^Table:/gm, ' ') // labels and index marks
     .replace(/\$\$[\s\S]*?\$\$|\$[^$\s][^$\n]*?\$(?!\d)/g, ' '); // TeX math
 }
 
