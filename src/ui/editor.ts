@@ -129,6 +129,7 @@ export class Editor {
       const k = e.key.toLowerCase();
       if (k === 'b' && !e.shiftKey) { e.preventDefault(); this.wrap('**', '**', 'bold'); return; }
       if (k === 'i' && !e.shiftKey) { e.preventDefault(); this.wrap('*', '*', 'italic'); return; }
+      if (k === 'n' && e.shiftKey) { e.preventDefault(); this.wrap('^[', ']', 'Note.'); return; } // inline footnote
       if (k === 'k' && !e.shiftKey) {
         e.preventDefault();
         const { selectionStart: a, selectionEnd: b, value } = this.ta;

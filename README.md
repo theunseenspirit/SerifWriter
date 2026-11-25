@@ -55,6 +55,7 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 |---|---|
 | `---` on its own line, with a blank line before it | a scene-break ornament |
 | `Text.[^1]` … `[^1]: The note.` | a footnote at the foot of the page (or chapter endnotes) |
+| `Text.^[The note, inline.]` | the same footnote, written in place |
 | `# Heading` at the top of a chapter | the chapter's title (the opening page) |
 | `#`…`######` elsewhere | part / chapter / section / subsection… — configurable per template |
 | `<!-- pagebreak -->` | a page break |
@@ -122,6 +123,7 @@ for books that contain math. Errors show in red, with the message on hover.
 | Keys | |
 |---|---|
 | ⌘B / ⌘I / ⌘K | bold / italic / link |
+| ⌘⇧N | footnote at the caret: `^[…]`, written right where it belongs |
 | ⌘S | save now (it already saved) |
 | ⌘F | find & replace in the whole book (match case, whole words, regular expressions) |
 | ⌘⇧K | insert a citation: search your bibliography by author, year, title or key |
