@@ -59,6 +59,45 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   const fn = await page.locator('.pv-root .pg-notes .fn').count();
   check('scene break and page-bottom footnote appear in the preview', sb >= 2 && fn >= 2, `${sb} breaks, ${fn} notes`);
 
+  // ── scholarship: bibliography, citations, math, find & replace, exports ──
+  await page.getByRole('button', { name: 'Add' }).click();
+  await page.locator('.menu-item', { hasText: 'Bibliography' }).click();
+  await page.locator('.editor-ta').fill('@book{arendt58, author = {Arendt, Hannah}, title = {The Human Condition}, publisher = {University of Chicago Press}, address = {Chicago}, year = 1958}\n');
+  await page.locator('.sb-item', { hasText: 'The First Light' }).click();
+  await page.locator('.editor-ta').press('Control+End');
+  await page.keyboard.type('\n\nAs Arendt argues [@arendt58, 7-9], we act; @arendt58 says so. Euler: $e^{i\\pi}+1=0$, at $5 or $10.');
+  await page.waitForTimeout(1800);
+  await idle(page);
+  const sch = await page.evaluate(() => ({
+    cites: Array.from(document.querySelectorAll('.pv-root .cite')).map((e) => e.textContent),
+    bib: document.querySelector('.pv-root .bib-entry')?.textContent || '',
+    math: document.querySelectorAll('.pv-root math').length,
+  }));
+  check('author–date citations are set from the BibTeX', sch.cites.includes('(Arendt 1958, 7–9)') && sch.cites.includes('Arendt (1958)'), sch.cites.join(' | '));
+  check('the bibliography lists the cited work', sch.bib.startsWith('Arendt, Hannah. 1958. The Human Condition.'), sch.bib);
+  check('TeX math is set as MathML (and prices are left alone)', sch.math === 1, `${sch.math} formulas`);
+  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.overrides = { citations: 'note' }; return c.relayout(); });
+  await idle(page);
+  const noteCite = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root .pg-notes .fn')).some((n) => n.textContent.includes('Hannah Arendt, The Human Condition (Chicago: University of Chicago Press, 1958), 7–9.')));
+  check('notes style turns citations into Chicago footnotes', noteCite);
+  await page.locator('.pj-bar').getByRole('button', { name: 'Export' }).click();
+  const [docx] = await Promise.all([page.waitForEvent('download'), page.locator('.exp-list > *', { hasText: 'Word document' }).getByRole('button', { name: 'Download' }).click()]);
+  const { unzipSync, strFromU8 } = require('fflate');
+  const docxFiles = unzipSync(fs.readFileSync(await docx.path()));
+  check('DOCX carries the citation as a real Word footnote', strFromU8(docxFiles['word/footnotes.xml']).includes('Hannah Arendt'));
+  const [epub] = await Promise.all([page.waitForEvent('download'), page.locator('.exp-list > *', { hasText: 'EPUB e-book' }).getByRole('button', { name: 'Download' }).click()]);
+  const epubFiles = unzipSync(fs.readFileSync(await epub.path()));
+  check('EPUB carries MathML and declares it', Object.values(epubFiles).some((f) => strFromU8(f).includes('<math')) && strFromU8(epubFiles['OEBPS/content.opf'] || Object.entries(epubFiles).find(([n]) => n.endsWith('.opf'))[1]).includes('mathml'));
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.overrides = {}; return c.relayout(); });
+  await page.locator('.editor-ta').press('Control+f');
+  await page.locator('.find-dlg input').first().fill('we act');
+  await page.locator('.find-dlg input').nth(1).fill('we begin');
+  await page.waitForTimeout(300);
+  await page.getByRole('button', { name: 'Replace all' }).click();
+  await page.waitForTimeout(500);
+  check('find & replace changes the book', (await textOf(page)).includes('we begin;'));
+
   // ── service worker: works offline ──
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();

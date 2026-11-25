@@ -111,8 +111,9 @@ function registerServiceWorker(): void {
       const w = reg.installing;
       w?.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w); });
     });
-    let reloading = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloading) { reloading = true; location.reload(); } });
+    // Reload only when an update replaces a running worker — never on first install, mid-sentence.
+    let reloading = !navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloading) { reloading = true; location.reload(); } else reloading = false; });
     setInterval(() => reg.update().catch(() => undefined), 60 * 60 * 1000);
   }).catch((e) => console.warn('Service worker registration failed', e));
 }
