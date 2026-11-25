@@ -149,7 +149,7 @@
 .sw-book .endnotes { margin-top: calc(var(--lh) * 1.5em); font-size: .86em; line-height: 1.3; }
 .sw-book .endnotes .en-title { text-align: center; font-variant-caps: small-caps; letter-spacing: .08em; margin-bottom: .6em; }
 .sw-book .endnotes .fn { margin-bottom: .45em; }
-.sw-book .bib-entry { text-indent: -2em; padding-left: 2em; text-align: left; margin: 0 0 .35em; hyphens: manual; }
+.sw-book .pg-content p.bib-entry { text-indent: -2em !important; padding-left: 2em; text-align: left !important; margin: 0 0 .35em; hyphens: manual; overflow-wrap: anywhere; }
 .sw-book .bib-num { display: inline-block; min-width: 2em; text-indent: 0; }
 .sw-book .cite-missing, .sw-book .math-error { color: #b3261e; }
 .sw-book .sc { font-variant-caps: small-caps; }

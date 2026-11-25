@@ -12,6 +12,8 @@ import victorianJson from './victorian/template.json';
 import victorianCss from './victorian/template.css?raw';
 import pocketJson from './pocket/template.json';
 import pocketCss from './pocket/template.css?raw';
+import scholarlyJson from './scholarly/template.json';
+import scholarlyCss from './scholarly/template.css?raw';
 
 const builtIn = (json: any, css: string): TemplateDef => ({ ...json, builtIn: true, base: json.id, css });
 
@@ -21,6 +23,7 @@ export const BUILT_IN: TemplateDef[] = [
   builtIn(manuscriptJson, manuscriptCss),
   builtIn(victorianJson, victorianCss),
   builtIn(pocketJson, pocketCss),
+  builtIn(scholarlyJson, scholarlyCss),
 ];
 
 export const PAGE_SIZES: Record<PageSizeId, { w: number; h: number; label: string }> = {
