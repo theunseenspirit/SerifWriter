@@ -59,6 +59,8 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 | You type | You get |
 |---|---|
 | `---` on its own line, with a blank line before it | a scene-break ornament |
+| `\forall`, `\neg`, `\to`, `\Box`, `\vdash`, `\therefore` + space | ∀ ¬ → □ ⊢ ∴ — logic and philosophy symbols by their LaTeX names (not inside math or code) |
+| `{^Plato}`, `{^Plato!Republic}` | an index entry (prints nothing) — and a subentry |
 | <kbd>Tab</kbd> at the start of a line | an indented line, set one per line — premises, propositions, verse (two tabs: further in) |
 | `Text.[^1]` … `[^1]: The note.` | a footnote at the foot of the page (or chapter endnotes) |
 | `Text.^[The note, inline.]` | the same footnote, written in place |
@@ -118,6 +120,23 @@ Label a figure, table or equation as above and refer to it anywhere in the book 
 `@tbl:…` or `@eq:…` (Pandoc-crossref syntax). Each kind is numbered in order through the book, and
 the numbers follow when you move things around. An unknown label shows in red.
 
+### Index
+
+Mark a term where it is discussed — select it and press ⌘⇧X, or type `{^Term}` — and add an
+*Index* section (*Add* ▸ *Index*). It lists every term alphabetically under letter heads, with
+subentries (`{^Term!Subterm}`) and page numbers that follow the pages as the book changes
+(consecutive pages become ranges: 12–14). The index is part of the PDF; e-books and Word files,
+which have no fixed pages, leave it out.
+
+### Symbols
+
+Type a symbol's LaTeX name and a space: `\forall` ∀, `\exists` ∃, `\neg` ¬, `\wedge` ∧, `\vee` ∨,
+`\to` →, `\leftrightarrow` ↔, `\Box` □, `\Diamond` ◇, `\vdash` ⊢, `\models` ⊨, `\therefore` ∴,
+`\bot` ⊥, `\in` ∈, `\subseteq` ⊆, `\ulcorner`/`\urcorner` ⌜⌝, Greek letters and more (⌘⇧L shows
+them all). Prefix operators stay tight to what follows, so `\forall x` gives ∀x. Names inside
+`$math$` and `code` are left alone; whole formulas read best as math. In the book, symbols the
+text font lacks are set in a matching serif symbol font (STIX Two on macOS, Cambria Math on Windows).
+
 ### Mathematics
 
 `$…$` is inline and `$$…$$` display math, in LaTeX syntax, set as MathML (a dollar followed by a
@@ -133,6 +152,8 @@ for books that contain math. Errors show in red, with the message on hover.
 | ⌘S | save now (it already saved) |
 | ⌘F | find & replace in the whole book (match case, whole words, regular expressions) |
 | ⌘⇧K | insert a citation: search your bibliography by author, year, title or key |
+| ⌘⇧L | insert a symbol: logic, philosophy and maths, searchable by name or meaning |
+| ⌘⇧X | add the selected word to the index |
 | ⌘⇧F | focus mode (Esc to leave) |
 | ⌘\\ | show/hide the sidebar |
 | Return in a list or quote | continues it; Return on an empty item ends it |
@@ -176,7 +197,8 @@ Six templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
 * **Ornate Victorian** — Libre Baskerville, ruled running heads, scrollwork, framed title page.
 * **Pocket Edition** — 5 × 8, EB Garamond with Cormorant display, italic heads, roman numerals.
 * **Scholarly Monograph** — a university-press interior: 6 × 9, EB Garamond, numbered sections
-  (2.1, 2.1.1), author–date citations, page footnotes, flush-left openings, italic running heads.
+  (2.1, 2.1.1), author–date citations, page footnotes, flush-left openings, chapter and section running
+  heads, small capitals for abbreviations.
 
 *Design* adjusts everything: accent presets or any colour, ink and paper, text and display fonts
 (Cardo, EB Garamond, Crimson Pro, Libre Baskerville, Cormorant — all bundled, all offline), size,
@@ -184,7 +206,8 @@ line spacing, indent, justification, hyphenation, page size (5 × 8, 5.5 × 8.5,
 7 × 10, A5, A4, Letter),
 margins, two-sided layout, where chapters start and how far down, chapter/part labels, drop caps,
 small-cap lead-ins, ornament sets, scene breaks, running heads and folios, heading roles, footnote
-placement, citation style, section numbering, widows/orphans, and custom CSS. *Save as new template* keeps it for every book; templates
+placement, citation style, section numbering, section running heads, small caps for abbreviations,
+widows/orphans, and custom CSS. *Save as new template* keeps it for every book; templates
 export and import as `.json`.
 
 ## Export

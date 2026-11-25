@@ -1,6 +1,7 @@
 import type { Section } from '../model/types.ts';
 import { h } from './dom.ts';
 import { KINDS } from '../model/defaults.ts';
+import { symbolBefore } from '../model/symbols.ts';
 
 // The writing surface: a native <textarea>. It is the fastest and most robust
 // editor a browser has — native undo, spellcheck, dictation and IME — and it
@@ -125,6 +126,15 @@ export class Editor {
 
   private onKey(e: KeyboardEvent): void {
     const mod = e.metaKey || e.ctrlKey;
+    // \forall + space → ∀ (LaTeX names for logic and philosophy symbols)
+    if (!mod && !e.altKey && !e.isComposing && (e.key === 'Enter' || e.key === 'Tab' || (e.key.length === 1 && !/[A-Za-z]/.test(e.key))) && this.ta.selectionStart === this.ta.selectionEnd) {
+      const sym = symbolBefore(this.ta.value, this.ta.selectionStart);
+      if (sym) {
+        this.ta.setSelectionRange(sym.start, this.ta.selectionStart);
+        this.insert(sym.char);
+        if (sym.prefix && e.key === ' ') { e.preventDefault(); return; }
+      }
+    }
     if (mod && !e.altKey) {
       const k = e.key.toLowerCase();
       if (k === 'b' && !e.shiftKey) { e.preventDefault(); this.wrap('**', '**', 'bold'); return; }

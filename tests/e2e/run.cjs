@@ -107,6 +107,8 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await page.locator('.find-dlg input').fill('arendt 1958');
   await page.keyboard.press('Enter');
   check('⌘⇧K searches the bibliography and inserts a citation', (await textOf(page)).trimEnd().endsWith('[@arendt58]'));
+  await page.keyboard.type(' \\forall x \\to y');
+  check('\\forall and \\to become logic symbols as you type', (await textOf(page)).endsWith('∀x → y'));
   await page.waitForTimeout(800);
   await page.locator('.sb-totals').click();
   await page.waitForSelector('.stats-dlg .st-chart svg');
