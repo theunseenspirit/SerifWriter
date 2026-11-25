@@ -221,6 +221,5 @@ Verification: 21 unit tests (`npm test`) and 31 browser checks (`npm run e2e`): 
 reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
 operations, versions, templates, backup → delete → restore, citations in all three styles, the
 bibliography, math, find & replace, the citation picker, and citations/math in the DOCX and EPUB.
-Exports were checked by rendering the
-PDF (6 × 9 in, 6.125 × 9.25 in with bleed, fonts embedded), structurally validating the EPUB, and
-opening the DOCX in LibreOffice.
+Exports were checked by rendering the PDF (6 × 9 in, 6.125 × 9.25 in with bleed, fonts embedded),
+structurally validating the EPUB, and opening the DOCX in LibreOffice.
