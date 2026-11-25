@@ -217,9 +217,10 @@ All seven phases are built. Measured results (Chromium, CPU throttled 4× ≈ 20
 | Re-paginate the edited chapter (12 pages) after a pause | 64 ms, sliced | 118 ms, sliced |
 | Longest main-thread task while writing | 66 ms (after a pause) | 116 ms (after a pause) |
 
-Verification: 21 unit tests (`npm test`) and 30 browser checks (`npm run e2e`): autosave across
+Verification: 21 unit tests (`npm test`) and 31 browser checks (`npm run e2e`): autosave across
 reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
 operations, versions, templates, backup → delete → restore, citations in all three styles, the
-bibliography, math, find & replace, and citations/math in the DOCX and EPUB. Exports were checked by rendering the
+bibliography, math, find & replace, the citation picker, and citations/math in the DOCX and EPUB.
+Exports were checked by rendering the
 PDF (6 × 9 in, 6.125 × 9.25 in with bleed, fonts embedded), structurally validating the EPUB, and
 opening the DOCX in LibreOffice.

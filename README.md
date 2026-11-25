@@ -89,7 +89,7 @@ about the author, bibliography. Drag to reorder, or select one and press ⌥↑ 
 
 Add a **Bibliography** section and paste your BibTeX into it — a Zotero, Mendeley, JabRef or
 Google Scholar export works as is (BibLaTeX `date`, `journaltitle` and `location` too). Cite with
-Pandoc's syntax above. The bibliography page lists the works you cite (all of them until you cite
+Pandoc's syntax above, or press ⌘⇧K to search the bibliography and insert one. The bibliography page lists the works you cite (all of them until you cite
 one), with accents, `{Braces}` and `\emph{}` understood, and same-author-same-year works told apart
 as 2001a / 2001b. *Design ▸ Notes & flow ▸ Citations* chooses the style for the whole book:
 
@@ -114,6 +114,7 @@ for books that contain math. Errors show in red, with the message on hover.
 | ⌘B / ⌘I / ⌘K | bold / italic / link |
 | ⌘S | save now (it already saved) |
 | ⌘F | find & replace in the whole book (match case, whole words, regular expressions) |
+| ⌘⇧K | insert a citation: search your bibliography by author, year, title or key |
 | ⌘⇧F | focus mode (Esc to leave) |
 | ⌘\\ | show/hide the sidebar |
 | Return in a list or quote | continues it; Return on an empty item ends it |

@@ -403,6 +403,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     if (mod && key.toLowerCase() === 's') { e.preventDefault(); void flush().then(() => toast('Saved.', { kind: 'success', timeout: 1200 })); return true; }
     if (mod && e.shiftKey && key.toLowerCase() === 'f') { e.preventDefault(); toggleFocus(); return true; }
     if (mod && !e.shiftKey && key.toLowerCase() === 'f') { e.preventDefault(); void openFind(); return true; }
+    if (mod && e.shiftKey && key.toLowerCase() === 'k') { e.preventDefault(); void import('./citePicker.ts').then((m) => m.openCitePicker(ctx)); return true; }
     if (mod && key === '\\') { e.preventDefault(); setPane('sidebar'); return true; }
     if (key === 'Escape' && view.classList.contains('focus')) { toggleFocus(false); return true; }
     return false;

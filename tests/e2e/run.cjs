@@ -97,6 +97,11 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await page.getByRole('button', { name: 'Replace all' }).click();
   await page.waitForTimeout(500);
   check('find & replace changes the book', (await textOf(page)).includes('we begin;'));
+  await page.locator('.editor-ta').press('Control+End');
+  await page.keyboard.press('Control+Shift+K');
+  await page.locator('.find-dlg input').fill('arendt 1958');
+  await page.keyboard.press('Enter');
+  check('⌘⇧K searches the bibliography and inserts a citation', (await textOf(page)).trimEnd().endsWith('[@arendt58]'));
 
   // ── service worker: works offline ──
   await page.evaluate(() => navigator.serviceWorker.ready);

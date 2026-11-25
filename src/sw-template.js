@@ -39,7 +39,7 @@ self.addEventListener('fetch', (event) => {
   }
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
-      const hit = await cache.match(req, { ignoreSearch: true });
+      const hit = await cache.match(req, { ignoreSearch: true, ignoreVary: true });
       if (hit) return hit;
       const res = await fetch(req);
       if (res.ok && res.type === 'basic') cache.put(req, res.clone());
