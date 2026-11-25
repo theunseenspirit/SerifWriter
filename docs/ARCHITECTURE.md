@@ -78,10 +78,11 @@ page is one sheet, so the PDF is exactly what the preview shows.
               │                                      │                              │
       storage/autosave                     typeset/book (assembly)            export/*
    debounce → IndexedDB                    ├ md/render (markdown-it + plugins)   PDF (print CSS, bleed)
-   sync journal → localStorage             ├ typeset/sections (page types)       EPUB 3 (zip)
-   storage/snapshots (gzip)                ├ typeset/paginate (per section)      DOCX (OOXML)
-   storage/mirror (File System Access)     └ templates (JSON + CSS)              HTML, Markdown
-   storage/backup (zip)                                                           
+   sync journal → localStorage             │  ├ md/cite (BibTeX, 3 styles)       EPUB 3 (zip)
+   storage/snapshots (gzip)                │  └ md/math (TeX → MathML, lazy)     DOCX (OOXML)
+   storage/mirror (File System Access)     ├ typeset/sections (page types)       HTML, Markdown
+   storage/backup (zip)                    ├ typeset/paginate (per section)
+                                           └ templates (JSON + CSS)
               │
           db/idb + db/repo  — IndexedDB: projects · sections · snapshots · snapshotData · templates · assets · kv
 ```
@@ -91,7 +92,8 @@ page is one sheet, so the PDF is exactly what the preview shows.
 * `projects` — book metadata (title, subtitle, author…), section order,
   template id + your overrides, last-opened section, cached word count.
 * `sections` — one row per sidebar item: `kind` (title, copyright, dedication,
-  epigraph, toc, part, chapter, section, about), Markdown `content`, word
+  epigraph, toc, part, chapter, section, about, bibliography), Markdown
+  (or, for the bibliography, BibTeX) `content`, word
   count, cursor + scroll position (so it reopens where you left off).
 * `snapshots` / `snapshotData` — version history; metadata is listed quickly,
   the gzipped project copy is loaded only when you preview or restore.
@@ -117,11 +119,29 @@ page is one sheet, so the PDF is exactly what the preview shows.
 ### Typesetting pipeline
 
 `Markdown → markdown-it (CommonMark + GFM tables/strikethrough/autolinks,
-task lists, footnotes, typographer quotes) → sanitizer → DOM post-processing
-(heading roles, scene breaks, drop cap, small-caps lead-in, footnote
-extraction, source-line mapping) → section builder (page types) → paginator →
+task lists, footnotes, typographer quotes, citations, TeX math) → sanitizer →
+math fill-in → DOM post-processing (heading roles and numbers, scene breaks,
+drop cap, small-caps lead-in, footnote extraction, source-line mapping) → section builder (page types) → paginator →
 book assembly (blank pages for recto starts, roman/arabic folios, running
 heads, TOC page numbers) → preview / print / reader`.
+
+**Citations** (`md/cite.ts`, ~300 lines): a BibTeX reader (nested braces,
+`#` concatenation, LaTeX accents, `and`-separated names with von-parts and
+`{protected}` groups) and three styles. The book layout scans every section
+once per pause for cited keys (in order of first appearance) and hands the
+parsed bibliography to the renderer through markdown-it's `env`. A section's
+cache key includes a hash of (BibTeX + style + citation order) only if it
+contains an `@`, so editing the bibliography or adding a new citation
+re-paginates just the sections that cite and the reference list. Notes style
+writes footnote tokens the same way markdown-it-footnote's inline notes do;
+the core inline pass is re-run with a flag so citations inside footnote
+definitions are set in place rather than nested.
+
+**Math** (`md/math.ts`): `$…$`/`$$…$$` become sanitised placeholders, filled
+after sanitising with MathML from Temml (trusted output, no HTML passthrough).
+Temml is a separate 60 KB chunk, imported only when a book contains `$`;
+once it loads, sections with `$` are re-queued. A paragraph that is only a
+display equation becomes an unbreakable block.
 
 Heading levels map to roles per template — e.g. `#` → chapter, `##` → section
 — or `#` → part, `##` → chapter. A leading chapter-level heading becomes the
@@ -139,7 +159,8 @@ template (base + settings + optional extra CSS) in IndexedDB, exportable as
 
 Built-ins: **Classic Leather** (the flagship, matching `demo.tex`),
 **Modern Literary**, **Manuscript** (standard submission format),
-**Ornate Victorian**, **Pocket Edition**.
+**Ornate Victorian**, **Pocket Edition**, **Scholarly Monograph**
+(university press: numbered sections, author–date citations).
 
 Fonts (SIL Open Font License, bundled, subset to Latin with *all* OpenType
 features kept — the Google Fonts/npm builds strip small caps and old-style
@@ -151,6 +172,7 @@ to browser-synthesised small caps.
 
 * `markdown-it` + `markdown-it-footnote` — spec-compliant CommonMark parser.
 * `fflate` — zip for EPUB, DOCX and backups (loaded only when exporting).
+* `temml` — TeX → MathML (loaded only for books with math).
 
 That's all. No UI framework, no Paged.js, no editor library (a native
 `<textarea>` is the fastest, most robust writing surface and keeps native
@@ -183,8 +205,9 @@ origins with the zip backup.
 | 4 | Version history (auto + named, diff view, restore project or one chapter), folder mirror + import from folder, zip backup/restore |
 | 5 | Exports: PDF (with bleed), EPUB 3, DOCX, HTML, Markdown; full-screen reading mode |
 | 6 | Browser verification, CPU-throttled typing check, tests |
+| 7 | Scholarship: BibTeX citations (author–date, numeric, notes), bibliography, TeX math, numbered sections, Scholarly Monograph template, find & replace |
 
-All six phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
+All seven phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
 120,000-word / 350-page book, `tests/e2e/perf.cjs`):
 
 | | 4× throttle | 6× throttle |
@@ -194,8 +217,9 @@ All six phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018
 | Re-paginate the edited chapter (12 pages) after a pause | 64 ms, sliced | 118 ms, sliced |
 | Longest main-thread task while writing | 66 ms (after a pause) | 116 ms (after a pause) |
 
-Verification: 16 unit tests (`npm test`) and 23 browser checks (`npm run e2e`): autosave across
+Verification: 21 unit tests (`npm test`) and 30 browser checks (`npm run e2e`): autosave across
 reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
-operations, versions, templates, backup → delete → restore. Exports were checked by rendering the
+operations, versions, templates, backup → delete → restore, citations in all three styles, the
+bibliography, math, find & replace, and citations/math in the DOCX and EPUB. Exports were checked by rendering the
 PDF (6 × 9 in, 6.125 × 9.25 in with bleed, fonts embedded), structurally validating the EPUB, and
 opening the DOCX in LibreOffice.
