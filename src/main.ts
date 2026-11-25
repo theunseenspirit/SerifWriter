@@ -106,7 +106,8 @@ function registerServiceWorker(): void {
         onAction: () => { w.postMessage('skipWaiting'); },
       });
     };
-    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    // An update that was waiting when the app opens is applied straight away, before any writing.
+    if (reg.waiting && navigator.serviceWorker.controller) reg.waiting.postMessage('skipWaiting');
     reg.addEventListener('updatefound', () => {
       const w = reg.installing;
       w?.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w); });
@@ -114,7 +115,10 @@ function registerServiceWorker(): void {
     // Reload only when an update replaces a running worker — never on first install, mid-sentence.
     let reloading = !navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloading) { reloading = true; location.reload(); } else reloading = false; });
-    setInterval(() => reg.update().catch(() => undefined), 60 * 60 * 1000);
+    // Look for a new version every 15 minutes and whenever you come back to the app.
+    const check = () => reg.update().catch(() => undefined);
+    setInterval(check, 15 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
   }).catch((e) => console.warn('Service worker registration failed', e));
 }
 

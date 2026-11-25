@@ -27,8 +27,13 @@ whole app, fonts included, is cached by its service worker.
 
 * **Keep using the same address.** Browsers keep data per address, so a book written at
   `localhost:4173` lives there. Use *Backup* ▸ *Download backup* to move books anywhere else.
-* **Updates:** pull the new code and run `npm start` again; the app shows *“A new version is
-  ready — Restart”*.
+* **Updates are automatic.** While `npm start` runs, it checks GitHub every 15 minutes; a new
+  version is pulled, rebuilt and swapped in, and the open app shows *“A new version is ready —
+  Restart”* (an update waiting when you open the app is applied straight away). Local edits or a
+  failed build leave the current version running.
+* **Always on (macOS):** `npm run autostart` runs the server in the background whenever you're
+  logged in, so the app stays current without a terminal; `npm run autostart -- off` undoes it.
+  Its log is `serifwriter.log`.
 * **Safari (macOS Sonoma):** open the address and choose *File ▸ Add to Dock*. Everything works
   except mirroring to a folder (Safari doesn't support it) — use zip backups there.
 * You can also host the `dist/` folder on any static host (GitHub Pages, Netlify). Your writing
