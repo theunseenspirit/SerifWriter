@@ -138,9 +138,9 @@ Click anywhere on a page in the preview to jump to that paragraph in the editor.
 
 ## Writing stats
 
-Click the word count at the bottom left — in the sidebar, or the status bar under the editor — (or the
-chart icon in the top bar) to see how
-you write. Everything is recorded as you type and stays on your computer.
+Click the word count at the bottom left (in the sidebar, or under the editor when the sidebar is
+hidden), or the chart icon in the top bar, to see how you write. Everything is recorded as you type
+and stays on your computer.
 
 * **Habits:** words today (against an optional daily goal), your writing streak and best streak,
   the last seven days, an average writing day, time spent writing and your pace in words an hour,
