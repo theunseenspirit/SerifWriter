@@ -137,6 +137,7 @@ figcaption { font-size: .85em; font-style: italic; margin-top: .4em; }
 a { color: inherit; }
 .bib-entry { text-indent: -2em; padding-left: 2em; text-align: left; margin-bottom: .4em; }
 .sc { font-variant: small-caps; }
+p.ind { text-indent: 0; text-align: left; } p.ind1 { margin-left: 2em; } p.ind2 { margin-left: 4em; } p.ind3 { margin-left: 6em; } p.ind4 { margin-left: 8em; }
 .tbl-cap { text-indent: 0; text-align: center; font-size: .85em; }
 .cap-label { font-style: normal; font-variant: small-caps; }
 math { font-family: 'STIX Two Math', 'Cambria Math', math; }

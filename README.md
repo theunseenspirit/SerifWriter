@@ -27,8 +27,13 @@ whole app, fonts included, is cached by its service worker.
 
 * **Keep using the same address.** Browsers keep data per address, so a book written at
   `localhost:4173` lives there. Use *Backup* ▸ *Download backup* to move books anywhere else.
-* **Updates:** pull the new code and run `npm start` again; the app shows *“A new version is
-  ready — Restart”*.
+* **Updates are automatic.** While `npm start` runs, it checks GitHub every 15 minutes; a new
+  version is pulled, rebuilt and swapped in, and the open app shows *“A new version is ready —
+  Restart”* (an update waiting when you open the app is applied straight away). Local edits or a
+  failed build leave the current version running.
+* **Always on (macOS):** `npm run autostart` runs the server in the background whenever you're
+  logged in, so the app stays current without a terminal; `npm run autostart -- off` undoes it.
+  Its log is `serifwriter.log`.
 * **Safari (macOS Sonoma):** open the address and choose *File ▸ Add to Dock*. Everything works
   except mirroring to a folder (Safari doesn't support it) — use zip backups there.
 * You can also host the `dist/` folder on any static host (GitHub Pages, Netlify). Your writing
@@ -54,6 +59,7 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 | You type | You get |
 |---|---|
 | `---` on its own line, with a blank line before it | a scene-break ornament |
+| <kbd>Tab</kbd> at the start of a line | an indented line, set one per line — premises, propositions, verse (two tabs: further in) |
 | `Text.[^1]` … `[^1]: The note.` | a footnote at the foot of the page (or chapter endnotes) |
 | `Text.^[The note, inline.]` | the same footnote, written in place |
 | `# Heading` at the top of a chapter | the chapter's title (the opening page) |
@@ -130,7 +136,7 @@ for books that contain math. Errors show in red, with the message on hover.
 | ⌘⇧F | focus mode (Esc to leave) |
 | ⌘\\ | show/hide the sidebar |
 | Return in a list or quote | continues it; Return on an empty item ends it |
-| Tab / ⇧Tab in a list | indent / outdent |
+| Tab / ⇧Tab | indent / outdent the line or the selected lines (in a list: the item) |
 | Reading mode | ← → Space PageUp PageDown Home End, Esc to close |
 
 Click anywhere on a page in the preview to jump to that paragraph in the editor. Drop a `.bib`,

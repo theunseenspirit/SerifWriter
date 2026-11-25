@@ -16,7 +16,7 @@ Don't wrap it in Tauri now.**
 | Real `.md` files in a folder on disk | ✅ File System Access API (Chrome/Edge only) — folder permission can persist ("Allow on every visit", Chrome 122+) | ✅ native fs |
 | Print-ready PDF with embedded fonts | ✅ Chrome's print engine honours `@page` sizes and embeds subset fonts | ⚠️ WKWebView printing is limited; `@page size` support is patchy, and `window.print()` historically doesn't work in Tauri on macOS |
 | Bundle / RAM on a 2018 MacBook Air | ~1.2 MB total (fonts are ~1 MB of it) | +~8 MB shell, separate runtime process |
-| Updates | automatic (service worker) | needs signing + updater |
+| Updates | automatic: `scripts/serve.mjs` pulls and rebuilds; the service worker picks it up | needs signing + updater |
 | Safari | works (no folder mirror; zip backup instead) | n/a |
 
 The only thing Tauri would add is folder access without a permission prompt and

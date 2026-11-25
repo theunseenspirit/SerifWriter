@@ -142,7 +142,7 @@ export class Editor {
     }
     if (this.opts.onShortcut(e.key, e)) return;
     if (e.key === 'Enter' && !e.shiftKey && !mod && !e.isComposing) this.continueList(e);
-    else if (e.key === 'Tab' && !mod) this.indentList(e);
+    else if (e.key === 'Tab' && !mod && !e.altKey) this.indentList(e) || this.indentLines(e);
   }
 
   private currentLine(): { start: number; text: string } {
@@ -174,14 +174,30 @@ export class Editor {
     this.insert(`\n${indent}${marker}${space}${task ? '[ ] ' : ''}`);
   }
 
-  private indentList(e: KeyboardEvent): void {
+  /** Tab indents the line (or every selected line) with a tab; ⇧Tab takes one indent away. */
+  private indentLines(e: KeyboardEvent): void {
+    e.preventDefault();
+    const { selectionStart: a, selectionEnd: b, value: v } = this.ta;
+    if (a === b && !e.shiftKey && v.slice(v.lastIndexOf('\n', a - 1) + 1, a).trim()) { this.insert('\t'); return; }
+    const start = v.lastIndexOf('\n', a - 1) + 1;
+    const end = b > a && v[b - 1] === '\n' ? b - 1 : Math.max(b, v.indexOf('\n', b) < 0 ? v.length : v.indexOf('\n', b));
+    const before = v.slice(start, end);
+    const after = before.split('\n').map((l) => (e.shiftKey ? l.replace(/^(\t| {1,4})/, '') : `\t${l}`)).join('\n');
+    if (after === before) return;
+    this.ta.setSelectionRange(start, end);
+    this.insert(after);
+    if (a === b) { const pos = Math.max(start, a + after.length - before.length); this.ta.setSelectionRange(pos, pos); }
+    else this.ta.setSelectionRange(start, start + after.length);
+  }
+
+  private indentList(e: KeyboardEvent): boolean {
     const { start, text } = this.currentLine();
-    if (!/^\s*([-*+]|\d+[.)])\s/.test(text + this.ta.value.slice(this.ta.selectionStart, this.ta.selectionStart + 3))) return;
+    if (!/^\s*([-*+]|\d+[.)])\s/.test(text + this.ta.value.slice(this.ta.selectionStart, this.ta.selectionStart + 3))) return false;
     e.preventDefault();
     const pos = this.ta.selectionStart;
     if (e.shiftKey) {
       const lead = /^( {1,2}|\t)/.exec(this.ta.value.slice(start));
-      if (!lead) return;
+      if (!lead) return true;
       this.ta.setSelectionRange(start, start + lead[0].length);
       this.insert('');
       this.ta.setSelectionRange(pos - lead[0].length, pos - lead[0].length);
@@ -190,6 +206,7 @@ export class Editor {
       this.insert('  ');
       this.ta.setSelectionRange(pos + 2, pos + 2);
     }
+    return true;
   }
 
   private async onPaste(e: ClipboardEvent): Promise<void> {

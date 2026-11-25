@@ -12,6 +12,7 @@ function precacheServiceWorker(): Plugin {
   return {
     name: 'serifwriter-precache-sw',
     apply: 'build',
+    enforce: 'post', // after Vite's HTML plugin, so index.html is part of the version hash
     generateBundle(_options, bundle) {
       const walk = (dir: string): string[] =>
         readdirSync(dir).flatMap((name) => {

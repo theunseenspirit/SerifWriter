@@ -3,6 +3,7 @@ import footnote from 'markdown-it-footnote';
 import { sanitizeInto } from './sanitize.ts';
 import { citations, type CiteCtx } from './cite.ts';
 import { math, typesetMath } from './math.ts';
+import { indentedLines } from './indent.ts';
 
 // CommonMark + GFM (tables, strikethrough, autolinks, task lists) + footnotes,
 // with smart typography. Every block carries data-line so the preview can be
@@ -70,6 +71,7 @@ export function markdown(lang = 'en'): MarkdownIt {
   });
   md.use(footnote as any);
   md.use(taskLists);
+  md.use(indentedLines);
   md.use(lineNumbers);
   md.use(citations);
   md.use(math);

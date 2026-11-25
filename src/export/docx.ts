@@ -157,7 +157,8 @@ async function blockXml(root: HTMLElement, ctx: Ctx, defaultStyle = 'Normal', li
           out += `<w:p><w:pPr><w:pStyle w:val="FirstParagraph"/><w:keepNext/><w:framePr w:dropCap="drop" w:lines="${st.dropCap.lines}" w:wrap="around" w:vAnchor="text" w:hAnchor="text"/><w:spacing w:after="0" w:line="${lineTw}" w:lineRule="exact"/><w:ind w:firstLine="0"/><w:textAlignment w:val="baseline"/></w:pPr><w:r><w:rPr><w:rStyle w:val="DropCap"/><w:position w:val="-4"/><w:sz w:val="${Math.round(lineTw / 10)}"/></w:rPr><w:t>${x(m[0].trim())}</w:t></w:r></w:p>`;
         }
       }
-      out += para(style, await inlineRuns(el, {}, ctx), numPr);
+      const lvl = /\bind(\d)\b/.exec(el.className)?.[1];
+      out += para(style, await inlineRuns(el, {}, ctx), numPr + (lvl ? `<w:ind w:left="${+lvl * 480}" w:firstLine="0"/><w:jc w:val="left"/>` : ''));
       continue;
     }
     if (/^H[1-6]$/.test(tag)) {

@@ -118,7 +118,7 @@ function leadIn(p: HTMLElement, words: number): void {
 }
 
 function isPlainParagraph(el: Element): boolean {
-  if (el.tagName !== 'P') return false;
+  if (el.tagName !== 'P' || el.classList.contains('ind')) return false;
   const text = (el.textContent || '').trim();
   return text.length > 0 && !el.querySelector('img');
 }
