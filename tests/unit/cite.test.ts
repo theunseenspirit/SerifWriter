@@ -55,3 +55,16 @@ test('note citations become footnotes: full first, short after, inline inside no
   assert.match(out, /See Thomas S\. Kuhn and Paul Feyerabend, “A Theory of Change,” <em>Mind<\/em> 12 \(3\) \(1962a\): 45–60/);
   assert.equal((out.match(/class="footnote-item/g) || []).length, 3);
 });
+
+test('cross-references: labels are numbered through the book, @fig:x refers to them', () => {
+  const md = new MarkdownIt().use(footnote).use(citations);
+  const chapters = [
+    { kind: 'chapter', content: '![A map](m.png){#fig:map}\n\n![Plan](p.png){#fig:plan}' },
+    { kind: 'chapter', content: 'See @fig:plan and [@fig:map; @tbl:t], not @fig:none.\n\nTable: Results {#tbl:t}' },
+  ];
+  const cite = citeContext(chapters, 'note')!;
+  assert.deepEqual([...cite.refs], [['fig:map', 1], ['fig:plan', 2], ['tbl:t', 1]]);
+  const out = md.render(chapters[1].content, { cite });
+  assert.match(out, /See Figure 2 and Figure 1, Table 1, not <span class="cite-missing"[^>]*>fig:none\?<\/span>/);
+  assert.equal(citeContext([{ kind: 'chapter', content: 'No labels.' }]), null);
+});

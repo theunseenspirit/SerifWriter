@@ -3,17 +3,31 @@
 // a full note the first time a work is cited in a chapter, a short note after).
 // Pandoc syntax: [@key], [see @key, 33; @other], [-@key] (year only),
 // @key (narrative), @key [33].
+// Cross-references share the syntax: {#fig:x}, {#tbl:x} and {#eq:x} label a
+// figure, table or equation, numbered through the book; @fig:x refers to it.
 
 import { escapeHtml, hashString } from '../util.ts';
 
 export type CiteStyle = 'author-date' | 'numeric' | 'note';
 interface Name { family: string; given: string }
 export interface BibEntry { key: string; type: string; f: Record<string, string>; names: Name[]; eds: boolean; year: string }
-export interface CiteCtx { bib: Map<string, BibEntry>; style: CiteStyle; num: Map<string, number>; order: string[]; key: string }
+export interface CiteCtx { bib: Map<string, BibEntry>; style: CiteStyle; num: Map<string, number>; order: string[]; refs: Map<string, number>; key: string }
 interface Item { prefix: string; suppress: boolean; key: string; loc: string }
 
 const KEY = String.raw`\w[\w:.#$%&+?<>~/-]*`;
 const cleanKey = (k: string) => k.replace(/[^\w]+$/, '');
+const REF_NAME: Record<string, string> = { fig: 'Figure', tbl: 'Table', eq: 'Equation' };
+export const LABEL = /\{#((fig|tbl|eq):[\w:.-]+)\}/;
+const isRef = (key: string) => /^(fig|tbl|eq):/.test(key);
+/** "Figure 3", "Table 2", "Equation (4)" — or a red marker for an unknown label. */
+export function refText(c: CiteCtx, key: string): string {
+  const n = c.refs.get(key);
+  if (!n) return `<span class="cite-missing" title="No such label">${escapeHtml(key)}?</span>`;
+  const kind = key.slice(0, key.indexOf(':'));
+  return `${REF_NAME[kind]}\u00A0${kind === 'eq' ? `(${n})` : n}`;
+}
+/** Content that depends on the book-wide citation and numbering context. */
+export const citeDependent = (content: string) => content.includes('@') || content.includes('{#');
 
 // ───────── BibTeX ─────────
 
@@ -257,10 +271,20 @@ export function citations(md: any): void {
       if (!m || parsed.some((x) => !x)) return false;
       items = parsed as Item[];
       len = m[0].length;
+      if (items.every((it) => isRef(it.key))) {
+        if (!silent) state.push('html_inline', '', 0).content = items.map((it) => escapeHtml(it.prefix) + refText(c, it.key) + (it.loc ? `, ${it.loc}` : '')).join(', ');
+        state.pos += len;
+        return true;
+      }
     } else if (src[0] === '@') {
       if (state.pos > 0 && /\w/.test(state.src[state.pos - 1])) return false;
       const m = new RegExp(`^@(${KEY})`).exec(src);
       const key = m ? cleanKey(m[1]) : '';
+      if (isRef(key)) {
+        if (!silent) state.push('html_inline', '', 0).content = refText(c, key);
+        state.pos += 1 + key.length;
+        return true;
+      }
       if (!c.bib.has(key)) return false;
       len = 1 + key.length;
       const lm = /^ \[([^[\]@]+)\]/.exec(src.slice(len));
@@ -291,10 +315,16 @@ export function citations(md: any): void {
 
 let lastBib = { text: '', bib: new Map<string, BibEntry>() };
 
-/** Gathers the bibliography and the order works are first cited in. Null when the book has no bibliography. */
+/** Gathers the bibliography, the order works are first cited in, and figure/table/equation numbers. Null when there are neither. */
 export function citeContext(sections: { kind: string; content: string }[], style: CiteStyle = 'author-date'): CiteCtx | null {
   const text = sections.filter((s) => s.kind === 'bibliography').map((s) => s.content).join('\n');
-  if (!text.trim()) return null;
+  const refs = new Map<string, number>();
+  const count: Record<string, number> = {};
+  for (const s of sections) {
+    if (s.kind === 'bibliography' || !s.content.includes('{#')) continue;
+    for (const m of s.content.matchAll(new RegExp(LABEL.source, 'g'))) if (!refs.has(m[1])) refs.set(m[1], (count[m[2]] = (count[m[2]] || 0) + 1));
+  }
+  if (!text.trim() && !refs.size) return null;
   if (lastBib.text !== text) lastBib = { text, bib: parseBibtex(text) };
   const bib = lastBib.bib;
   const order: string[] = [];
@@ -307,7 +337,7 @@ export function citeContext(sections: { kind: string; content: string }[], style
       if (bib.has(k) && !seen.has(k)) { seen.add(k); order.push(k); }
     }
   }
-  return { bib, style, order, num: new Map(order.map((k, i) => [k, i + 1])), key: hashString(text + style + order.join(',')) };
+  return { bib, style, order, num: new Map(order.map((k, i) => [k, i + 1])), refs, key: hashString(text + style + order.join(',') + [...refs].join(',')) };
 }
 
 /** The reference list: cited works (or every work, if nothing is cited yet). */

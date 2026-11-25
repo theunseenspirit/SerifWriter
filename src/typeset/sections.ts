@@ -5,7 +5,7 @@ import { ORNAMENT_SETS, sceneBreakHtml, type OrnamentSet } from './ornaments.ts'
 import { formatLabel, escapeHtml } from '../util.ts';
 import { roundedWords } from '../model/words.ts';
 import { FONTS } from './fonts.ts';
-import { bibliographyHtml, type CiteCtx } from '../md/cite.ts';
+import { bibliographyHtml, LABEL, type CiteCtx } from '../md/cite.ts';
 import { plainTitle, sectionTitle } from '../model/defaults.ts';
 export { sectionTitle };
 
@@ -209,14 +209,26 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
       afterBreak = true;
       continue;
     }
-    if (el.tagName === 'P' && el.children.length === 1 && el.firstElementChild!.tagName === 'IMG' && !(el.textContent || '').trim()) {
+    const figLabel = el.tagName === 'P' && el.children.length === 1 && el.firstElementChild!.tagName === 'IMG' ? /^\s*(?:\{#(fig:[\w:.-]+)\})?\s*$/.exec(el.textContent || '') : null;
+    if (figLabel) {
+      // ![Caption](image){#fig:label} → "Figure 3. Caption" (an image title, if given, wins)
       const img = el.firstElementChild as HTMLImageElement;
       const fig = h('figure', 'img-fig');
       fig.dataset.line = el.dataset.line || '';
       fig.appendChild(img);
-      const cap = img.getAttribute('title');
-      if (cap) fig.appendChild(h('figcaption', '', escapeHtml(cap)));
+      const n = figLabel[1] && ctx.cite?.refs.get(figLabel[1]);
+      const cap = escapeHtml(img.getAttribute('title') || (figLabel[1] ? img.alt : ''));
+      if (cap || n) fig.appendChild(h('figcaption', '', `${n ? `<span class="cap-label">Figure ${n}.</span> ` : ''}${cap}`));
       blocks.push(fig);
+      continue;
+    }
+    if (el.tagName === 'P' && /^Table:\s/.test(el.textContent || '') && (children[i + 1]?.tagName === 'TABLE' || blocks.at(-1)?.tagName === 'TABLE')) {
+      // "Table: Caption {#tbl:label}" just before or after a table → a numbered caption above it
+      const m = LABEL.exec(el.textContent || '');
+      const n = m && m[2] === 'tbl' && ctx.cite?.refs.get(m[1]);
+      el.innerHTML = `${n ? `<span class="cap-label">Table ${n}.</span> ` : ''}${el.innerHTML.replace(/^\s*Table:\s*/, '').replace(/\s*\{#tbl:[\w:.-]+\}\s*$/, '')}`;
+      el.className = 'tbl-cap keep-next';
+      if (blocks.at(-1)?.tagName === 'TABLE') blocks.splice(blocks.length - 1, 0, el); else blocks.push(el);
       continue;
     }
     if (isPlainParagraph(el)) {
