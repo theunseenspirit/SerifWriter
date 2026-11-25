@@ -101,7 +101,7 @@ export interface Asset {
 
 // ───────────────────────── Templates ─────────────────────────
 
-export type PageSizeId = '5x8' | '5.5x8.5' | '6x9' | 'a5' | 'letter';
+export type PageSizeId = '5x8' | '5.5x8.5' | '6x9' | 'royal' | '7x10' | 'a5' | 'a4' | 'letter';
 export type FontId = 'cardo' | 'ebgaramond' | 'crimsonpro' | 'librebaskerville' | 'cormorant';
 export type HeadingRole = 'part' | 'chapter' | 'section' | 'subsection' | 'minor' | 'runin';
 export type OrnamentSetId = 'classic' | 'victorian' | 'modern' | 'minimal' | 'none';

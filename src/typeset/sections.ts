@@ -222,7 +222,7 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
       blocks.push(fig);
       continue;
     }
-    if (el.tagName === 'P' && /^Table:\s/.test(el.textContent || '') && (children[i + 1]?.tagName === 'TABLE' || blocks.at(-1)?.tagName === 'TABLE')) {
+    if (el.tagName === 'P' && (children[i + 1]?.tagName === 'TABLE' || blocks.at(-1)?.tagName === 'TABLE') && /^Table:\s/.test(el.textContent || '')) {
       // "Table: Caption {#tbl:label}" just before or after a table → a numbered caption above it
       const m = LABEL.exec(el.textContent || '');
       const n = m && m[2] === 'tbl' && ctx.cite?.refs.get(m[1]);

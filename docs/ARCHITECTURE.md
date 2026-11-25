@@ -137,6 +137,12 @@ writes footnote tokens the same way markdown-it-footnote's inline notes do;
 the core inline pass is re-run with a flag so citations inside footnote
 definitions are set in place rather than nested.
 
+**Cross-references** reuse the same scan and context: `{#fig:…}`, `{#tbl:…}`
+and `{#eq:…}` labels are numbered per kind in book order, `@fig:…` resolves
+through the citation rule, figures and `Table:` captions are numbered in the
+section post-processing, and labelled equations get a `\tag{n}`. Sections are
+re-laid out when that context changes only if they contain `@` or `{#`.
+
 **Math** (`md/math.ts`): `$…$`/`$$…$$` become sanitised placeholders, filled
 after sanitising with MathML from Temml (trusted output, no HTML passthrough).
 Temml is a separate 60 KB chunk, imported only when a book contains `$`;
@@ -205,7 +211,7 @@ origins with the zip backup.
 | 4 | Version history (auto + named, diff view, restore project or one chapter), folder mirror + import from folder, zip backup/restore |
 | 5 | Exports: PDF (with bleed), EPUB 3, DOCX, HTML, Markdown; full-screen reading mode |
 | 6 | Browser verification, CPU-throttled typing check, tests |
-| 7 | Scholarship: BibTeX citations (author–date, numeric, notes), bibliography, TeX math, numbered sections, Scholarly Monograph template, find & replace |
+| 7 | Scholarship: BibTeX citations (author–date, numeric, notes), bibliography, TeX math, numbered sections, cross-references, Scholarly Monograph template, A4/Royal page sizes, find & replace |
 
 All seven phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
 120,000-word / 350-page book, `tests/e2e/perf.cjs`):
@@ -217,9 +223,10 @@ All seven phases are built. Measured results (Chromium, CPU throttled 4× ≈ 20
 | Re-paginate the edited chapter (12 pages) after a pause | 64 ms, sliced | 118 ms, sliced |
 | Longest main-thread task while writing | 66 ms (after a pause) | 116 ms (after a pause) |
 
-Verification: 21 unit tests (`npm test`) and 31 browser checks (`npm run e2e`): autosave across
+Verification: 22 unit tests (`npm test`) and 32 browser checks (`npm run e2e`): autosave across
 reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
 operations, versions, templates, backup → delete → restore, citations in all three styles, the
-bibliography, math, find & replace, the citation picker, and citations/math in the DOCX and EPUB.
+bibliography, cross-references, math, find & replace, the citation picker, and citations/math in
+the DOCX and EPUB.
 Exports were checked by rendering the PDF (6 × 9 in, 6.125 × 9.25 in with bleed, fonts embedded),
 structurally validating the EPUB, and opening the DOCX in LibreOffice.

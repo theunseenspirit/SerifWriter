@@ -76,6 +76,11 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   check('author–date citations are set from the BibTeX', sch.cites.includes('(Arendt 1958, 7–9)') && sch.cites.includes('Arendt (1958)'), sch.cites.join(' | '));
   check('the bibliography lists the cited work', sch.bib.startsWith('Arendt, Hannah. 1958. The Human Condition.'), sch.bib);
   check('TeX math is set as MathML (and prices are left alone)', sch.math === 1, `${sch.math} formulas`);
+  await page.locator('.editor-ta').evaluate((ta) => { ta.setRangeText('\n\nAs @tbl:kept shows.\n\n| Rule | Kept |\n|---|---|\n| Date first | 212 |\n\nTable: Rules kept {#tbl:kept}\n', ta.value.length, ta.value.length); ta.dispatchEvent(new Event('input')); });
+  await page.waitForTimeout(1800);
+  await idle(page);
+  const xref = await page.evaluate(() => [document.querySelector('.pv-root .tbl-cap')?.textContent, Array.from(document.querySelectorAll('.pv-root p')).some((p) => p.textContent === 'As Table 1 shows.')]);
+  check('cross-references number a table and refer to it', xref[0] === 'Table 1. Rules kept' && xref[1], String(xref[0]));
   await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.overrides = { citations: 'note' }; return c.relayout(); });
   await idle(page);
   const noteCite = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root .pg-notes .fn')).some((n) => n.textContent.includes('Hannah Arendt, The Human Condition (Chicago: University of Chicago Press, 1958), 7–9.')));
