@@ -38,7 +38,7 @@ a polyfill that re-flows the *whole document* on every change. That fights
 the two hard requirements — *typing never lags* on a dual-core 2018 Air, and
 *re-paginate only the chapter being edited*.
 
-Instead SerifWriter uses its own ~600-line paginator (`src/typeset/paginate.ts`)
+Instead SerifWriter uses its own ~450-line paginator (`src/typeset/paginate.ts`)
 that keeps Paged.js's good idea — real CSS `@page` rules for printing — and
 drops the rest:
 
@@ -183,3 +183,19 @@ origins with the zip backup.
 | 4 | Version history (auto + named, diff view, restore project or one chapter), folder mirror + import from folder, zip backup/restore |
 | 5 | Exports: PDF (with bleed), EPUB 3, DOCX, HTML, Markdown; full-screen reading mode |
 | 6 | Browser verification, CPU-throttled typing check, tests |
+
+All six phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
+120,000-word / 350-page book, `tests/e2e/perf.cjs`):
+
+| | 4× throttle | 6× throttle |
+|---|---|---|
+| Whole book typeset on open | 2.5 s | 4.4 s |
+| Keystroke latency, median / p95 / worst | 16 / 24 / 32 ms | 16 / 32 / 56 ms |
+| Re-paginate the edited chapter (12 pages) after a pause | 64 ms, sliced | 118 ms, sliced |
+| Longest main-thread task while writing | 66 ms (after a pause) | 116 ms (after a pause) |
+
+Verification: 16 unit tests (`npm test`) and 23 browser checks (`npm run e2e`): autosave across
+reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
+operations, versions, templates, backup → delete → restore. Exports were checked by rendering the
+PDF (6 × 9 in, 6.125 × 9.25 in with bleed, fonts embedded), structurally validating the EPUB, and
+opening the DOCX in LibreOffice.

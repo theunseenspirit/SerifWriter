@@ -2,6 +2,7 @@ import { get, getAll, getAllByIndex, getAllKeysByIndex, write, put, del, type Op
 import type { Asset, Project, Section, SnapshotMeta, TemplateDef } from '../model/types.ts';
 import { uid } from '../util.ts';
 import { countWords } from '../model/words.ts';
+import { titleContentFromMeta } from '../model/defaults.ts';
 
 // ───────── key/value app state ─────────
 export const kvGet = <T>(key: string) => get<T>('kv', key);
@@ -59,7 +60,6 @@ export async function duplicateProject(src: Project, newTitle: string): Promise<
     mirror: undefined,
   };
   // Keep the title page's front matter in step with the new title.
-  const { titleContentFromMeta } = await import('../model/defaults.ts');
   for (const s of copies) if (s.kind === 'title') { s.content = titleContentFromMeta(p.meta, s.content); s.words = countWords(s.content); }
   await write([
     { store: 'projects', put: p },

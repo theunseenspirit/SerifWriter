@@ -49,9 +49,9 @@
   position: absolute; left: 0; right: 0; bottom: 0;
   font-size: .82em; line-height: 1.28;
 }
-.sw-book .pg-notes:not(:empty) { padding-top: .7em; }
+.sw-book .pg-notes:not(:empty) { padding-top: 1.25em; }
 .sw-book .pg-notes:not(:empty)::before {
-  content: ''; position: absolute; top: .25em; left: 0; width: 1.1in; border-top: .4pt solid currentColor; opacity: .55;
+  content: ''; position: absolute; top: .6em; left: 0; width: 1.1in; border-top: .4pt solid currentColor; opacity: .55;
 }
 
 /* Running head and folio. Baselines sit head-sep above / foot-skip below the text block. */
@@ -67,6 +67,7 @@
 }
 .sw-book .pg-head { top: calc(var(--by) + var(--m-top) - var(--head-sep) - .8em); font-size: .82em; }
 .sw-book .pg-foot { top: calc(var(--by) + var(--page-h) - var(--m-bot) + var(--foot-skip) - .8em); font-size: .9em; }
+.sw-book .pg-head.empty { visibility: hidden; }
 .sw-book .pg-rh { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: top; }
 .sw-book .pg-fh { position: absolute; top: 0; }
 .sw-book .page.recto .pg-fh { right: 0; }

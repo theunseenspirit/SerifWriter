@@ -102,13 +102,18 @@ export class Preview {
 
   visiblePage(): PageRef | null {
     if (!this.book) return null;
+    const refs = this.book.pageRefs;
+    if (!refs.length) return null;
     const top = this.scroller.getBoundingClientRect().top + 40;
-    let best: PageRef | null = null;
-    for (const r of this.book.pageRefs) {
-      const b = r.frame.getBoundingClientRect();
-      if (b.bottom > top) { best = r; break; }
+    // Pages are in vertical order: binary search for the first whose bottom is below the top edge.
+    let lo = 0;
+    let hi = refs.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (refs[mid].frame.getBoundingClientRect().bottom > top) hi = mid;
+      else lo = mid + 1;
     }
-    return best;
+    return refs[lo];
   }
 
   updateStatus(): void {
@@ -141,7 +146,7 @@ export class Preview {
   }
 
   showSection(sectionId: string): void {
-    const ref = this.book?.pageRefs.find((r) => r.sectionId === sectionId);
+    const ref = this.book?.pageRefs.find((r) => r.sectionId === sectionId && !r.blank);
     if (ref) this.scrollToFrame(ref.frame, 'start', false);
   }
 

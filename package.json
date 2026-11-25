@@ -9,8 +9,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --port 4173 --strictPort",
     "start": "npm run build && npm run preview",
-    "test": "node --test --experimental-strip-types tests/unit/",
-    "e2e": "node tests/e2e/run.mjs"
+    "test": "node --test --experimental-strip-types --no-warnings \"tests/unit/*.test.ts\"",
+    "e2e": "node tests/e2e/run.cjs"
   },
   "dependencies": {
     "fflate": "^0.8.2",

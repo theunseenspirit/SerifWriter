@@ -3,7 +3,7 @@ import { renderSection, type Rendered, type TocEntry } from './sections.ts';
 import { paginate } from './paginate.ts';
 import { applyBookRoot, effectiveSettings, getTemplate, injectTemplateCss } from '../templates/index.ts';
 import { ensureFonts } from './fonts.ts';
-import { formatLabel, hashString, toRoman } from '../util.ts';
+import { formatLabel, hashString, toRoman, yieldToMain } from '../util.ts';
 import { KINDS, plainTitle } from '../model/defaults.ts';
 
 // Book assembly: per-section pagination jobs (cached by a content+settings
@@ -26,7 +26,7 @@ export interface LayoutInfo {
   busy: boolean;
 }
 
-export interface PageRef { page: HTMLElement; frame: HTMLElement; sectionId: string; n: number; folio: string }
+export interface PageRef { page: HTMLElement; frame: HTMLElement; sectionId: string; n: number; folio: string; blank?: boolean }
 
 export class BookLayout {
   readonly measure: HTMLElement;
@@ -198,6 +198,8 @@ export class BookLayout {
     }
   }
 
+  private current: string | null = null;
+
   private async layoutSection(id: string): Promise<void> {
     const sec = this.byId.get(id);
     const st = this.states.get(id);
@@ -205,15 +207,23 @@ export class BookLayout {
     const key = this.keyFor(sec);
     if (st.pages && st.key === key) return;
     const gen = ++st.gen;
+    this.current = id;
+    // Let any pending keystrokes run before the (synchronous) Markdown render.
+    await yieldToMain();
+    if (st.gen !== gen || this.destroyed) { this.current = null; return; }
     const ctx = this.ctx();
     if (sec.kind === 'toc') ctx.toc = this.tocEntries();
     let rendered: Rendered;
+    performance.mark('sw-render-start');
     try {
       rendered = renderSection(sec, ctx);
     } catch (e) {
       console.error('render failed', e);
+      this.current = null;
       return;
     }
+    performance.measure(`sw-render ${sec.kind}`, 'sw-render-start');
+    await yieldToMain();
     // A changed chapter title or heading changes the contents page.
     const tk = hashString(sec.title + sec.content) + this.settingsKey;
     const tocChanged = sec.kind !== 'toc' && JSON.stringify(st.toc) !== JSON.stringify(rendered.toc);
@@ -224,7 +234,9 @@ export class BookLayout {
       orphans: this.settings.orphans,
       isCancelled: () => st.gen !== gen || this.destroyed,
     });
+    this.current = null;
     if (!pages) return;
+    performance.measure(`sw-paginate ${sec.kind} (${pages.length} pages)`, 'sw-render-start');
     for (const p of pages) p.dataset.section = id;
     const old = st.pages;
     st.pages = pages;
@@ -235,9 +247,12 @@ export class BookLayout {
     this.scheduleAssemble();
   }
 
+  /** Cheap progress summary (called on every preview scroll, so no hashing here). */
   info(): LayoutInfo {
     const ids = this.visibleIds();
-    const done = ids.filter((id) => this.states.get(id)?.pages && this.states.get(id)!.key === this.keyFor(this.byId.get(id)!)).length;
+    const pending = new Set(this.queue);
+    if (this.current) pending.add(this.current);
+    const done = ids.filter((id) => this.states.get(id)?.pages && !pending.has(id)).length;
     return { pages: this.pageRefs.length, done, total: ids.length, busy: this.running || this.queue.length > 0 };
   }
 
@@ -331,6 +346,7 @@ export class BookLayout {
       const isBodyStart = id === firstBody && !bodyStarted;
       const rule = KINDS[sec.kind].start === 'chapter' ? s.chapter.start : KINDS[sec.kind].start;
       const needBlank = twoSided && p > 0 && ((rule === 'recto' && p % 2 === 1) || (rule === 'verso' && p % 2 === 0) || (isBodyStart && p % 2 === 1));
+      if (!needBlank) this.blanks.get(id)?.remove();
       let cursor: Node | null = group.firstChild;
       if (needBlank) {
         const b = this.blankFor(id);
@@ -339,9 +355,10 @@ export class BookLayout {
         const bp = b.firstElementChild as HTMLElement;
         setSide(bp, p % 2 === 0 ? 'recto' : 'verso');
         b.dataset.n = String(p);
-        if (bodyStarted) bodyNo++; else frontNo++;
+        const bn = bodyStarted ? ++bodyNo : ++frontNo;
+        refs.push({ page: bp, frame: b, sectionId: id, n: p, folio: bodyStarted ? String(bn) : toRoman(bn).toLowerCase(), blank: true });
         p++;
-      } else this.blanks.get(id)?.remove();
+      }
       if (isBodyStart) bodyStarted = true;
 
       st.pages.forEach((page, i) => {
@@ -391,6 +408,7 @@ export class BookLayout {
         setText(rhEl, rh);
         setText(fhEl, fh);
         setText(footEl, foot);
+        headEl.classList.toggle('empty', !rh && !fh);
         refs.push({ page, frame, sectionId: id, n: p, folio });
         p++;
       });
@@ -424,7 +442,7 @@ export class BookLayout {
 
   /** Physical page index for a source line in a section (for scroll sync). */
   pageForLine(sectionId: string, line: number): PageRef | null {
-    const pages = this.pageRefs.filter((r) => r.sectionId === sectionId);
+    const pages = this.pageRefs.filter((r) => r.sectionId === sectionId && !r.blank);
     if (!pages.length) return null;
     let best = pages[0];
     for (const r of pages) {

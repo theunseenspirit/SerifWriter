@@ -3,7 +3,7 @@ import * as repo from '../db/repo.ts';
 import { h, icon, button } from './dom.ts';
 import { confirmDialog, modal, promptDialog, showMenu, toast, choiceDialog } from './dialogs.ts';
 import { newProject, plainTitle, titleContentFromMeta } from '../model/defaults.ts';
-import { allTemplates, getTemplate, effectiveSettings } from '../templates/index.ts';
+import { allTemplates, getTemplate, effectiveSettings, setCustomTemplates } from '../templates/index.ts';
 import { fontStack } from '../typeset/fonts.ts';
 import { fmtNum, formatRelative, downloadBlob } from '../util.ts';
 import { mirror, mirrorSupported, readProjectFolder } from '../storage/mirror.ts';
@@ -194,7 +194,6 @@ export async function importBackupFile(file: File): Promise<void> {
     }
   }
   const n = await applyImport(plan, mode);
-  const { setCustomTemplates } = await import('../templates/index.ts');
   setCustomTemplates(await repo.listCustomTemplates());
   toast(`Imported ${n} book${n > 1 ? 's' : ''}.`, { kind: 'success' });
   await renderHome(root);

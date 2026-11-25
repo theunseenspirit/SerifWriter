@@ -12,7 +12,12 @@ export function h(tag: string, attrs?: Attrs | null, ...children: Child[]): HTML
     for (const [k, v] of Object.entries(attrs)) {
       if (v === undefined || v === null || v === false) continue;
       if (k === 'class') el.className = v;
-      else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else if (k === 'style' && typeof v === 'object') {
+        for (const [sk, sv] of Object.entries(v)) {
+          if (sk.startsWith('--')) el.style.setProperty(sk, String(sv));
+          else (el.style as any)[sk] = sv;
+        }
+      }
       else if (k === 'html') el.innerHTML = v;
       else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
       else if (k === 'value' || k === 'checked' || k === 'selected' || k === 'disabled' || k === 'hidden') (el as any)[k] = v;
@@ -79,7 +84,7 @@ export function icon(name: keyof typeof P | string, size = 18): SVGElement {
 }
 
 export function button(label: string, opts: { icon?: string; onClick?: (e: MouseEvent) => void; class?: string; title?: string; disabled?: boolean } = {}): HTMLButtonElement {
-  const b = h('button', { class: `btn ${opts.class || ''}`.trim(), type: 'button', title: opts.title || (opts.icon && !label ? undefined : undefined), 'aria-label': opts.title || label || undefined, disabled: opts.disabled });
+  const b = h('button', { class: `btn ${opts.class || ''}`.trim(), type: 'button', 'aria-label': label ? undefined : opts.title, disabled: opts.disabled });
   if (opts.icon) b.appendChild(icon(opts.icon));
   if (label) b.appendChild(h('span', null, label));
   if (opts.onClick) b.addEventListener('click', opts.onClick);

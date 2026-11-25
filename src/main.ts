@@ -8,7 +8,7 @@ import { setCustomTemplates, injectTemplateCss } from './templates/index.ts';
 import { mirror } from './storage/mirror.ts';
 import { sampleProject } from './model/defaults.ts';
 import { renderHome } from './ui/home.ts';
-import { openProjectView, closeProjectView } from './ui/project.ts';
+import { openProjectView, closeProjectView, getProjectCtx } from './ui/project.ts';
 import { toast } from './ui/dialogs.ts';
 import { projectFromSingleMarkdown } from './storage/serialize.ts';
 
@@ -16,9 +16,17 @@ import { projectFromSingleMarkdown } from './storage/serialize.ts';
 
 const app = document.getElementById('app')!;
 
-async function route(): Promise<void> {
+// Route changes are serialised so two can never open a book at the same time.
+let routing: Promise<void> = Promise.resolve();
+function route(): Promise<void> {
+  routing = routing.then(doRoute, doRoute);
+  return routing;
+}
+
+async function doRoute(): Promise<void> {
   const m = /^#\/book\/([\w-]+)/.exec(location.hash);
   if (m) {
+    if (getProjectCtx()?.session.project.id === m[1]) return; // already open
     const p = await repo.getProject(m[1]);
     if (p && !p.deletedAt) {
       await repo.kvSet('lastRoute', location.hash);
@@ -43,6 +51,9 @@ async function boot(): Promise<void> {
   // Ask the browser to keep our data even under storage pressure.
   navigator.storage?.persist?.().catch(() => undefined);
 
+  const theme = await repo.kvGet<string>('theme');
+  if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+
   const recovered = await recoverJournal().catch(() => 0);
   setCustomTemplates(await repo.listCustomTemplates());
   injectTemplateCss();
@@ -53,7 +64,7 @@ async function boot(): Promise<void> {
     const { project, sections } = sampleProject();
     await repo.createProject(project, sections);
     await repo.kvSet('seeded', true);
-    if (!location.hash) location.hash = `#/book/${project.id}`;
+    if (!location.hash) history.replaceState(null, '', `#/book/${project.id}`);
   } else if (!location.hash) {
     // Reopen right where you left off.
     const last = await repo.kvGet<string>('lastRoute');
@@ -67,6 +78,8 @@ async function boot(): Promise<void> {
 
   handleLaunchFiles();
   registerServiceWorker();
+  // Console access for power users and tests (everything stays local).
+  (window as any).serifwriter = { repo, mirror, project: getProjectCtx };
 }
 
 /** "Open with SerifWriter" for .md files when installed (Chrome file handlers). */
