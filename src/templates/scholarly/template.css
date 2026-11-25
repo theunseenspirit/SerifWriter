@@ -1,0 +1,28 @@
+/* Scholarly Monograph — a university-press page: plain, numbered, legible. */
+.tpl-scholarly {
+  & .pg-head { font-size: 9pt; font-style: italic; }
+  & .pg-head .pg-fh, & .pg-foot { font-style: normal; font-size: 9.5pt; }
+
+  & .opener { text-align: left; }
+  & .op-label { font-variant-caps: all-small-caps; letter-spacing: .1em; font-size: 11pt; color: var(--accent); }
+  & .op-title { font-size: 18pt; line-height: 1.2; margin-top: 6pt; }
+  & .op-sub { margin-top: 6pt; font-style: italic; }
+  & .opener::after { content: ''; display: block; width: 1in; margin-top: 14pt; border-top: .6pt solid var(--accent); }
+  & .opener-small .op-title { font-size: 15pt; }
+
+  & .h-section { text-align: left; font-size: 1em; font-variant-caps: all-small-caps; letter-spacing: .06em; }
+  & .h-subsection { text-align: left; font-style: italic; }
+  & .h-num { color: var(--accent); font-variant-numeric: lining-nums; }
+  & blockquote { margin-left: 1.5em; margin-right: 0; font-size: .92em; }
+
+  & .title-page { justify-content: flex-start; }
+  & .tp-title { margin-top: .8in; font-size: 26pt; line-height: 1.15; text-wrap: balance; }
+  & .tp-subtitle { margin-top: 10pt; font-size: 13pt; font-style: italic; }
+  & .tp-by { display: none; }
+  & .tp-author { margin-top: .5in; font-size: 13pt; font-variant-caps: all-small-caps; letter-spacing: .1em; }
+  & .tp-publisher { font-variant-caps: all-small-caps; letter-spacing: .12em; }
+
+  & .pt-label { font-variant-caps: all-small-caps; letter-spacing: .12em; color: var(--accent); }
+  & .pt-title { font-size: 22pt; margin-top: 8pt; }
+  & .toc-part { font-variant-caps: all-small-caps; letter-spacing: .1em; }
+}

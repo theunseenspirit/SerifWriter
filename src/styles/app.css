@@ -101,6 +101,14 @@ select.input { padding-right: 26px; }
 .dlg-msg { margin: 4px 0 8px; color: var(--ink-2); line-height: 1.5; }
 .dlg-note { margin: 0 0 12px; color: var(--ink-3); font-size: 12.5px; }
 .dlg-more { margin: 4px 0 8px; }
+.find-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.find-opts { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; margin: 10px 0 8px; }
+.find-status { margin-left: auto; color: var(--ink-3); font-size: 12.5px; }
+.find-results { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow: auto; border-top: 1px solid var(--line); }
+.find-results li { display: grid; grid-template-columns: 10em 1fr; gap: 12px; padding: 6px 4px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 13px; line-height: 1.4; }
+.find-results li:hover, .find-results li:focus { background: var(--line); outline: none; }
+.find-sec { color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.find-ctx mark { background: color-mix(in srgb, var(--accent-ui) 22%, transparent); color: inherit; border-radius: 2px; }
 .dlg-more summary { cursor: pointer; color: var(--ink-2); margin-bottom: 10px; }
 
 .menu { position: fixed; z-index: 1000; min-width: 210px; padding: 5px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 9px; box-shadow: var(--shadow); }

@@ -9,7 +9,8 @@ export type SectionKind =
   | 'part'
   | 'chapter'
   | 'section' // unnumbered chapter: preface, introduction, afterword, acknowledgements…
-  | 'about';
+  | 'about'
+  | 'bibliography'; // BibTeX, set as the reference list
 
 export interface CursorState {
   start: number;
@@ -149,6 +150,8 @@ export interface TemplateSettings {
   footnotes: 'page' | 'endnotes';
   headings: Record<'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6', HeadingRole>;
   titlePage: { layout: 'classic' | 'modern' | 'manuscript'; frame: 'double' | 'single' | 'ornate' | 'none'; corners: boolean };
+  citations: 'author-date' | 'numeric' | 'note';
+  numberHeadings: boolean; // 1.1-style numbers on sections and subsections
   widows: number;
   orphans: number;
   hiddenKinds: SectionKind[];

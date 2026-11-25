@@ -16,7 +16,10 @@ export function stripForCount(md: string): string {
     .replace(/\[\^[^\]]+\]/g, ' ') // footnote refs
     .replace(/^\s*\[[^\]]+\]:\s*\S+.*$/gm, ' ') // link reference definitions
     .replace(/<[^>\n]+>/g, ' ') // html tags
-    .replace(/https?:\/\/\S+/g, ' ');
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/^@\w+\s*\{[\s\S]*?\}\s*$/gm, ' ') // BibTeX entries
+    .replace(/-?@\w[\w:.#$%&+?<>~/-]*/g, ' ') // citation keys
+    .replace(/\$\$[\s\S]*?\$\$|\$[^$\s][^$\n]*?\$(?!\d)/g, ' '); // TeX math
 }
 
 export function countWords(md: string): number {

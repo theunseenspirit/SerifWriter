@@ -1,0 +1,31 @@
+{
+  "id": "scholarly",
+  "name": "Scholarly Monograph",
+  "description": "A university-press interior for academic books: EB Garamond, numbered sections, author–date citations, footnotes at the foot of the page, flush-left openings and quiet running heads.",
+  "cover": { "leather": "#1F2B3A", "foil": "#E4DCC8", "style": "cloth" },
+  "accentPresets": [
+    { "name": "Oxford blue", "value": "#22344F" },
+    { "name": "Black", "value": "#1A1A1A" },
+    { "name": "Cardinal", "value": "#8C1D1D" },
+    { "name": "Ivy", "value": "#2E4A33" }
+  ],
+  "settings": {
+    "page": { "size": "6x9", "margins": { "inside": 0.9, "outside": 0.75, "top": 0.8, "bottom": 0.85 }, "twoSided": true, "headSep": 0.3, "footSkip": 0.4 },
+    "type": { "body": "ebgaramond", "display": "ebgaramond", "size": 11, "leading": 1.14, "justify": true, "hyphenate": true, "indent": 1.5, "paragraphStyle": "indent", "oldstyleNums": true },
+    "color": { "ink": "#1A1A1A", "accent": "#22344F", "paper": "#FDFCF8" },
+    "chapter": { "start": "recto", "sink": 0.2, "label": "Chapter {n}", "partLabel": "Part {Roman}", "ornament": false },
+    "dropCap": { "enabled": false, "lines": 2 },
+    "leadIn": { "mode": "none", "words": 3, "afterBreak": false },
+    "ornaments": "minimal",
+    "sceneBreak": "asterism",
+    "runningHeads": { "verso": "title", "recto": "chapter", "align": "outside", "folio": "top-outside", "folioOnOpeners": true, "manuscript": false },
+    "footnotes": "page",
+    "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "runin" },
+    "titlePage": { "layout": "classic", "frame": "none", "corners": false },
+    "citations": "author-date",
+    "numberHeadings": true,
+    "widows": 2,
+    "orphans": 2,
+    "hiddenKinds": []
+  }
+}

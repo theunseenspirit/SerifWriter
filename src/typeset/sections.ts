@@ -5,6 +5,7 @@ import { ORNAMENT_SETS, sceneBreakHtml, type OrnamentSet } from './ornaments.ts'
 import { formatLabel, escapeHtml } from '../util.ts';
 import { roundedWords } from '../model/words.ts';
 import { FONTS } from './fonts.ts';
+import { bibliographyHtml, type CiteCtx } from '../md/cite.ts';
 import { plainTitle, sectionTitle } from '../model/defaults.ts';
 export { sectionTitle };
 
@@ -21,6 +22,7 @@ export interface RenderCtx {
   assetUrl: (id: string) => string | undefined;
   bookWords: number;
   toc: TocEntry[]; // only used when rendering the contents page
+  cite: CiteCtx | null;
 }
 
 export interface Rendered {
@@ -152,6 +154,7 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
   let wantDrop = numbered || sec.kind === 'section';
   let afterBreak = false;
   let n = 0;
+  const num = [0, 0];
   const children = Array.from(frag.children) as HTMLElement[];
   for (let i = 0; i < children.length; i++) {
     const el = children[i];
@@ -182,10 +185,18 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
       }
       wantDrop = true;
       afterBreak = false;
+      num[0] = num[1] = 0;
       continue;
     }
     if (role) {
       el.classList.add(`h-${role}`);
+      if (s.numberHeadings && (role === 'section' || role === 'subsection')) {
+        if (role === 'section') { num[0]++; num[1] = 0; } else num[1]++;
+        const hn = role === 'section' ? String(num[0]) : `${num[0]}.${num[1]}`;
+        const span = h('span', 'h-num', hn + '\u2002');
+        span.dataset.hnum = hn;
+        el.prepend(span);
+      }
       if (role === 'runin') el.classList.add('h-minor');
       blocks.push(el);
       afterBreak = true;
@@ -312,26 +323,26 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
     }
     case 'copyright': {
       const c = h('div', 'fixed-content copyright-page');
-      c.appendChild(renderMarkdown(fillTokens(fm.body, ctx.meta, s), { lang, lineOffset }));
+      c.appendChild(renderMarkdown(fillTokens(fm.body, ctx.meta, s), { lang, lineOffset, cite: ctx.cite }));
       return { ...base, fixed: c };
     }
     case 'dedication': {
       const c = h('div', 'fixed-content dedication-page');
       const body = h('div', 'ded-body');
-      body.appendChild(renderMarkdown(fm.body, { lang, lineOffset }));
+      body.appendChild(renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite }));
       c.appendChild(body);
       return { ...base, fixed: c };
     }
     case 'epigraph': {
       const c = h('div', 'fixed-content epigraph-page');
-      const frag = renderMarkdown(fm.body, { lang, lineOffset });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite });
       epigraph(frag);
       c.appendChild(frag);
       return { ...base, fixed: c };
     }
     case 'part': {
       const c = h('div', 'fixed-content part-page');
-      const frag = renderMarkdown(fm.body, { lang, lineOffset });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite });
       let titleHtml = escapeHtml(fmString(fm.data.title) || sec.title);
       const firstHeading = frag.firstElementChild;
       if (firstHeading && /^H[1-6]$/.test(firstHeading.tagName)) { titleHtml = firstHeading.innerHTML; firstHeading.remove(); }
@@ -357,9 +368,14 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
       }
       return { ...base, opener: op, blocks, rh: textOf(title) };
     }
+    case 'bibliography': {
+      const title = renderInline(fmString(fm.data.title) || sec.title || 'Bibliography', lang);
+      const blocks = (ctx.cite ? bibliographyHtml(ctx.cite) : []).map((html) => h('p', 'bib-entry', html));
+      return { ...base, opener: opener('section', title, '', set, s, sec.id), blocks, toc: [{ id: sec.id, kind: 'back', title, plain: textOf(title) }], rh: textOf(title) };
+    }
     default: {
       const numbered = sec.kind === 'chapter';
-      const frag = renderMarkdown(fm.body, { lang, lineOffset });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite });
       const flow = processFlow(frag, ctx, sec, set, numbered);
       const titleHtml = fm.data.title ? renderInline(fmString(fm.data.title), lang) : flow.leadTitle ?? escapeHtml(sec.title || 'Untitled');
       const sub = fm.data.subtitle ? renderInline(fmString(fm.data.subtitle), lang) : flow.leadSub;

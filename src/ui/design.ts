@@ -265,6 +265,8 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
       h('p', { class: 'ds-note' }, 'What each Markdown heading level means in this book. A chapter-level heading at the top of a chapter becomes its title.'),
       ...(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const).map((k, i) => row(`${'#'.repeat(i + 1)} heading`, select(`headings.${k}`, headingRoles)))),
     sec('Notes & flow',
+      row('Citations', select('citations', [['author-date', 'Author–date (Doe 2001, 33)'], ['numeric', 'Numeric [1, 33]'], ['note', 'Notes (Chicago footnotes)']]), 'How [@key] citations are set. Add a Bibliography section with your BibTeX.'),
+      row('', toggle('numberHeadings', 'Number sections (1.1, 1.2…)')),
       row('Footnotes', select('footnotes', [['page', 'At the foot of the page'], ['endnotes', 'At the end of each chapter']])),
       row('Orphans', number('orphans', 1, 1, 4), 'Minimum lines of a paragraph left at the bottom of a page.'),
       row('Widows', number('widows', 1, 1, 4), 'Minimum lines of a paragraph carried to the top of a page.')),

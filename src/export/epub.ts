@@ -117,7 +117,7 @@ export async function exportEpub(project: Project, sections: Section[], opts: { 
     const tmp = document.createElement('div');
     tmp.innerHTML = body;
     const xml = inner(tmp).replace(/ focusable="false"/g, "");
-    const props = xml.includes('<svg') ? 'svg' : '';
+    const props = [xml.includes('<svg') ? 'svg' : '', xml.includes('<math') ? 'mathml' : ''].filter(Boolean).join(' ');
     add(file, xhtml(f.titleText || f.kind, lang, xml, type), 'application/xhtml+xml', id, props);
     spine.push(`<itemref idref="${id}"/>`);
     if (['chapter', 'section', 'part', 'about'].includes(f.kind)) {

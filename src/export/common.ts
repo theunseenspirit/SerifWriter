@@ -4,6 +4,8 @@ import { effectiveSettings } from '../templates/index.ts';
 import { formatLabel, escapeHtml } from '../util.ts';
 import { plainTitle } from '../model/defaults.ts';
 import * as repo from '../db/repo.ts';
+import { citeContext } from '../md/cite.ts';
+import { loadMath } from '../md/math.ts';
 
 // Shared preparation for the reflowable formats (EPUB, DOCX, HTML).
 
@@ -28,13 +30,14 @@ export interface BookData {
 
 export async function collectBook(project: Project, all: Section[]): Promise<BookData> {
   const settings = effectiveSettings(project);
+  await loadMath(all.map((x) => x.content));
   // Reflowable formats always get footnotes as notes, never page-bottom layout.
   const s: TemplateSettings = { ...settings, footnotes: 'page' };
   const assets = new Map<string, { blob: Blob; type: string; name: string }>();
   for (const a of await repo.listAssets(project.id)) assets.set(a.id, { blob: a.blob, type: a.type, name: a.name });
   const urls = new Map<string, string>();
   const words = all.reduce((n, x) => n + (x.kind === 'title' || x.kind === 'toc' ? 0 : x.words), 0);
-  const ctx = { settings: s, meta: project.meta, assetUrl: (id: string) => { if (!assets.has(id)) return undefined; urls.set(id, `asset-export:${id}`); return `asset-export:${id}`; }, bookWords: words, toc: [] };
+  const ctx = { settings: s, meta: project.meta, assetUrl: (id: string) => { if (!assets.has(id)) return undefined; urls.set(id, `asset-export:${id}`); return `asset-export:${id}`; }, bookWords: words, toc: [], cite: citeContext(all.filter((x) => !settings.hiddenKinds.includes(x.kind)), settings.citations) };
   const out: FlowSection[] = [];
   let chapter = 0;
   let part = 0;
@@ -66,6 +69,7 @@ export async function collectBook(project: Project, all: Section[]): Promise<Boo
     for (const b of r.blocks) body.appendChild(b);
     // in-flow chapter/part headings get their numbers too
     for (const lbl of Array.from(body.querySelectorAll<HTMLElement>('[data-label]'))) lbl.textContent = lbl.dataset.label === 'chapter' ? formatLabel(settings.chapter.label, ++chapter) : formatLabel(settings.chapter.partLabel, ++part);
+    for (const hn of Array.from(body.querySelectorAll<HTMLElement>('.h-num'))) hn.textContent = sec.kind === 'chapter' ? `${chapter}.${hn.dataset.hnum}\u2002` : hn.dataset.hnum + '\u2002';
     for (const el of Array.from(body.querySelectorAll('[data-line]'))) el.removeAttribute('data-line');
     const tmp = document.createElement('div');
     tmp.innerHTML = titleHtml;
@@ -131,6 +135,10 @@ figure { margin: 1em 0; text-align: center; }
 figure img, img { max-width: 100%; height: auto; }
 figcaption { font-size: .85em; font-style: italic; margin-top: .4em; }
 a { color: inherit; }
+.bib-entry { text-indent: -2em; padding-left: 2em; text-align: left; margin-bottom: .4em; }
+.sc { font-variant: small-caps; }
+math { font-family: 'STIX Two Math', 'Cambria Math', math; }
+.math-block { text-align: center; margin: .5em 0; }
 sup.fn-ref, a.noteref { font-size: .7em; vertical-align: super; line-height: 0; text-decoration: none; }
 .footnotes { margin-top: 2.5em; font-size: .85em; border-top: 1px solid #ccc; padding-top: .8em; }
 .footnotes p, aside.fn p { text-indent: 0; margin: 0 0 .5em; }

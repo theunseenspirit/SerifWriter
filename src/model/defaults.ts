@@ -23,9 +23,10 @@ export const KINDS: Record<SectionKind, KindInfo> = {
   chapter: { label: 'Chapter', defaultTitle: 'Untitled Chapter', hint: '', front: false, start: 'chapter' },
   section: { label: 'Unnumbered chapter', defaultTitle: 'Preface', hint: 'Preface, introduction, afterword, acknowledgements — opens like a chapter but without a number.', front: false, start: 'chapter' },
   about: { label: 'About the author', defaultTitle: 'About the Author', hint: 'Set at the back of the book.', front: false, start: 'recto' },
+  bibliography: { label: 'Bibliography', defaultTitle: 'Bibliography', hint: 'Paste BibTeX (e.g. exported from Zotero). Cite with [@key], [@key, 33], [see @a; @b], [-@key] or @key. Cited works are listed; style is set in Design.', front: false, start: 'chapter' },
 };
 
-export const KIND_ORDER: SectionKind[] = ['chapter', 'part', 'section', 'title', 'copyright', 'dedication', 'epigraph', 'toc', 'about'];
+export const KIND_ORDER: SectionKind[] = ['chapter', 'part', 'section', 'title', 'copyright', 'dedication', 'epigraph', 'toc', 'about', 'bibliography'];
 
 export const META_KEYS = ['title', 'subtitle', 'author', 'publisher', 'year', 'language'];
 
@@ -75,7 +76,7 @@ export function sectionTitle(s: Section): string {
   const fm = splitFrontMatter(s.content);
   if (fm.data.title) return fmString(fm.data.title);
   const m = /^\s*#\s+(.+?)\s*#*\s*$/m.exec(fm.body.split('\n').find((l) => l.trim()) || '');
-  if (m && (s.kind === 'chapter' || s.kind === 'section' || s.kind === 'about' || s.kind === 'part')) return m[1].replace(/[*_`]/g, '');
+  if (m && (s.kind === 'chapter' || s.kind === 'section' || s.kind === 'about' || s.kind === 'part' || s.kind === 'bibliography')) return m[1].replace(/[*_`]/g, '');
   return s.title || 'Untitled';
 }
 
