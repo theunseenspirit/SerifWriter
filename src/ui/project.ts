@@ -77,6 +77,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   });
 
   const sidebar = new Sidebar({
+    onStats: () => void openStats(),
     onSelect: (id) => select(id),
     onReorder: (ids) => { session.reorder(ids); renderSidebar(); book.updateSections(session.project, session.sections, [], currentId || undefined); },
     onAdd: (kind, after) => void addSection(kind, after),
@@ -115,16 +116,19 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   const readBtn = button('Read', { icon: 'read', onClick: async () => (await import('./reader.ts')).openReader(ctx), title: 'Read the typeset book full-screen' });
   const findBtn = iconButton('search', 'Find & replace in the whole book (⌘F)', () => void openFind());
   const openFind = async () => (await import('./find.ts')).openFind(ctx);
+  const openStats = async () => { await flush(); (await import('./stats.ts')).openStats(ctx); };
+  const statsBtn = iconButton('chart', 'Writing stats: your habits and your prose', () => void openStats());
   const focusBtn = iconButton('focus', 'Focus mode (⌘⇧F)', () => toggleFocus());
   const back = h('a', { class: 'btn icon pj-back', href: '#/', title: 'Library', 'aria-label': 'Back to library' }, icon('back'));
 
   const topbar = h('header', { class: 'pj-bar' },
     back, toggleSidebar, titleBtn, saveState, mirrorWarn,
     h('div', { class: 'pj-spacer' }),
-    findBtn, designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview);
+    findBtn, statsBtn, designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview);
 
   const resizer = h('div', { class: 'pj-resizer', role: 'separator', 'aria-orientation': 'vertical', title: 'Drag to resize' });
-  const statusbar = h('div', { class: 'pj-status' });
+  const statusbar = h('button', { class: 'pj-status', type: 'button', title: 'Writing stats' });
+  statusbar.addEventListener('click', () => void openStats());
   const editorCol = h('div', { class: 'pj-editor' }, editor.el, statusbar);
   const layout = h('div', { class: 'pj-main' }, sidebar.el, editorCol, resizer, preview.el);
   const view = h('div', { class: 'project' }, topbar, layout);

@@ -137,6 +137,8 @@ figcaption { font-size: .85em; font-style: italic; margin-top: .4em; }
 a { color: inherit; }
 .bib-entry { text-indent: -2em; padding-left: 2em; text-align: left; margin-bottom: .4em; }
 .sc { font-variant: small-caps; }
+.tbl-cap { text-indent: 0; text-align: center; font-size: .85em; }
+.cap-label { font-style: normal; font-variant: small-caps; }
 math { font-family: 'STIX Two Math', 'Cambria Math', math; }
 .math-block { text-align: center; margin: .5em 0; }
 sup.fn-ref, a.noteref { font-size: .7em; vertical-align: super; line-height: 0; text-decoration: none; }

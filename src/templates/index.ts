@@ -30,7 +30,10 @@ export const PAGE_SIZES: Record<PageSizeId, { w: number; h: number; label: strin
   '5x8': { w: 5, h: 8, label: '5 × 8 in' },
   '5.5x8.5': { w: 5.5, h: 8.5, label: '5.5 × 8.5 in' },
   '6x9': { w: 6, h: 9, label: '6 × 9 in' },
+  royal: { w: 6.14, h: 9.21, label: 'Royal (156 × 234 mm)' },
+  '7x10': { w: 7, h: 10, label: '7 × 10 in' },
   a5: { w: 5.8268, h: 8.2677, label: 'A5 (148 × 210 mm)' },
+  a4: { w: 8.2677, h: 11.6929, label: 'A4 (210 × 297 mm)' },
   letter: { w: 8.5, h: 11, label: 'US Letter (8.5 × 11 in)' },
 };
 

@@ -129,6 +129,7 @@ export class Editor {
       const k = e.key.toLowerCase();
       if (k === 'b' && !e.shiftKey) { e.preventDefault(); this.wrap('**', '**', 'bold'); return; }
       if (k === 'i' && !e.shiftKey) { e.preventDefault(); this.wrap('*', '*', 'italic'); return; }
+      if (k === 'n' && e.shiftKey) { e.preventDefault(); this.wrap('^[', ']', 'Note.'); return; } // inline footnote
       if (k === 'k' && !e.shiftKey) {
         e.preventDefault();
         const { selectionStart: a, selectionEnd: b, value } = this.ta;
@@ -200,12 +201,12 @@ export class Editor {
   }
 
   private async onDrop(e: DragEvent): Promise<void> {
-    const files = Array.from(e.dataTransfer?.files || []);
-    const imgs = files.filter((f) => f.type.startsWith('image/'));
-    if (!imgs.length) return;
+    const files = Array.from(e.dataTransfer?.files || []).filter((f) => f.type.startsWith('image/') || /\.(bib|md|markdown|txt|tex)$/i.test(f.name));
+    if (!files.length) return;
     e.preventDefault();
-    for (const f of imgs) {
-      const md = await this.opts.onImage(f);
+    // A dropped .bib, .md or .txt file is inserted as text; images become figures.
+    for (const f of files) {
+      const md = f.type.startsWith('image/') ? await this.opts.onImage(f) : await f.text();
       if (md) this.insert(md);
     }
   }

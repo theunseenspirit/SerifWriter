@@ -153,6 +153,9 @@
 .sw-book .bib-num { display: inline-block; min-width: 2em; text-indent: 0; }
 .sw-book .cite-missing, .sw-book .math-error { color: #b3261e; }
 .sw-book .sc { font-variant-caps: small-caps; }
+.sw-book .pg-content p.tbl-cap { text-indent: 0; text-align: center; font-size: .85em; margin-top: calc(var(--lh) * .5em); }
+.sw-book .pg-content p.tbl-cap + table { margin-top: .3em; }
+.sw-book .cap-label { font-style: normal; font-variant-caps: small-caps; letter-spacing: .03em; }
 .sw-book math { font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', math; font-size: 1.05em; }
 .sw-book .math-block { text-align: center; margin: .4em 0; text-indent: 0; }
 
@@ -170,6 +173,7 @@
     float: left; font-size: var(--dc-size); line-height: .78; margin: .06em .08em 0 0;
   }
 }
+.sw-book.has-dropcap .pg-content p.dropcap { min-height: calc(var(--dc-lines) * var(--lh) * 1em); } /* a short opening paragraph is never shorter than its cap */
 .sw-book .lead-in { font-variant-caps: small-caps; }
 .sw-book .pg-content p.leadin-line::first-line { font-variant-caps: small-caps; }
 

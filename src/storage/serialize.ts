@@ -19,6 +19,7 @@ export interface ProjectFile {
   createdAt: number;
   updatedAt: number;
   goal?: number;
+  stats?: Project['stats'];
   sections: { id: string; kind: SectionKind; title: string; file: string; createdAt: number; updatedAt: number }[];
 }
 
@@ -59,7 +60,7 @@ export function projectToFiles(project: Project, sections: Section[]): { json: P
   const files = sections.map((s, i) => ({ id: s.id, name: sectionFilename(i, s), text: sectionToMarkdown(s) }));
   const json: ProjectFile = {
     format: 'serifwriter-project', version: 1, id: project.id, meta: project.meta, templateId: project.templateId,
-    overrides: project.overrides, customCss: project.customCss, createdAt: project.createdAt, updatedAt: project.updatedAt, goal: project.goal,
+    overrides: project.overrides, customCss: project.customCss, createdAt: project.createdAt, updatedAt: project.updatedAt, goal: project.goal, stats: project.stats,
     sections: sections.map((s, i) => ({ id: s.id, kind: s.kind, title: s.title, file: files[i].name, createdAt: s.createdAt, updatedAt: s.updatedAt })),
   };
   return { json, files };
@@ -91,7 +92,7 @@ export function projectFromFiles(json: ProjectFile | null, files: Map<string, st
     id, createdAt: json?.createdAt || now, updatedAt: json?.updatedAt || now, openedAt: now, deletedAt: null, meta,
     order: sections.map((s) => s.id), templateId: json?.templateId || 'classic', overrides: json?.overrides || {},
     customCss: json?.customCss || '', lastSectionId: sections.find((s) => s.kind === 'chapter')?.id || sections[0]?.id || null,
-    words: sections.reduce((n, s) => n + (s.kind === 'title' ? 0 : s.words), 0), ui: {}, goal: json?.goal,
+    words: sections.reduce((n, s) => n + (s.kind === 'title' ? 0 : s.words), 0), ui: {}, goal: json?.goal, stats: json?.stats,
   };
   return { project, sections };
 }

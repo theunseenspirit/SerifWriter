@@ -1,8 +1,9 @@
-import type { Project, Section } from '../model/types.ts';
+import type { Project, Section, WritingStats } from '../model/types.ts';
 import * as repo from '../db/repo.ts';
 import { countWords } from '../model/words.ts';
 import { metaFromTitleContent, titleContentFromMeta } from '../model/defaults.ts';
 import { todayKey } from '../util.ts';
+import { emptyStats } from '../model/stats.ts';
 
 // The open project. Holds sections in memory, writes changes to IndexedDB
 // (atomically) and keeps a synchronous localStorage journal so text typed
@@ -60,11 +61,27 @@ export class ProjectSession {
   private listeners = new Set<(s: SaveState) => void>();
   /** Hooks run after each successful save (snapshots, folder mirror). */
   afterSave: ((changed: string[], projectChanged: boolean) => void)[] = [];
+  private lastTotal: number;
+  private lastActive = 0;
 
   constructor(project: Project, sections: Section[]) {
     this.project = project;
     this.sections = sections;
     this.byId = new Map(sections.map((s) => [s.id, s]));
+    this.lastTotal = this.totalWords;
+  }
+
+  /** Writing habits: net words per day, and active time (pauses under two minutes count). */
+  private track(): void {
+    const now = Date.now();
+    const st: WritingStats = (this.project.stats ??= emptyStats());
+    const total = this.totalWords;
+    const d = (st.days[todayKey()] ??= { w: 0, m: 0, t: this.lastTotal });
+    d.w += total - this.lastTotal;
+    d.t = this.lastTotal = total;
+    const gap = now - this.lastActive;
+    this.lastActive = now;
+    if (gap < 120_000) { d.m += gap / 60_000; st.hours[new Date(now).getHours()] += gap / 60_000; }
   }
 
   onState(fn: (s: SaveState) => void): () => void {
@@ -90,6 +107,7 @@ export class ProjectSession {
     s.updatedAt = Date.now();
     s.words = countWords(content);
     if (s.kind === 'title') this.project.meta = metaFromTitleContent(content, this.project.meta);
+    this.track();
     this.dirty.add(id);
     this.journal([id]);
     this.save();
@@ -134,7 +152,6 @@ export class ProjectSession {
         this.projectDirty = false;
         const secs = [...ids, ...touched].map((id) => this.byId.get(id)).filter(Boolean) as Section[];
         if (ids.length) this.project.updatedAt = Date.now();
-        this.trackDaily();
         try {
           await repo.saveSections(this.project, secs, this.totalWords);
           // Clear journal entries that are now safely stored (unless edited again meanwhile).
@@ -159,15 +176,9 @@ export class ProjectSession {
     return this.saving;
   }
 
-  /** Words written today (for the status bar). */
-  private trackDaily(): void {
-    const day = todayKey();
-    const d = this.project.ui as any;
-    if (!d.daily || d.daily.day !== day) d.daily = { day, start: this.totalWords };
-  }
+  /** Net words written today (for the sidebar). */
   get wordsToday(): number {
-    const d = (this.project.ui as any).daily;
-    return d && d.day === todayKey() ? this.totalWords - d.start : 0;
+    return this.project.stats?.days[todayKey()]?.w ?? 0;
   }
 
   async flush(): Promise<void> {

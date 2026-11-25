@@ -24,11 +24,16 @@ export function math(md: any): void {
     while ((end = src.indexOf(d, end)) !== -1 && src[end - 1] === '\\') end++;
     if (end <= start || end > state.posMax) return false;
     if (d === '$' && (/\s/.test(src[end - 1]) || /\d/.test(src[end + 1] ?? ''))) return false; // "$5 and $10"
-    if (!silent) { const t = state.push('math', '', 0); t.content = src.slice(start, end).trim(); t.markup = d; }
-    state.pos = end + d.length;
+    const label = d === '$$' ? /^[ \t]*\{#(eq:[\w:.-]+)\}/.exec(src.slice(end + 2, state.posMax)) : null;
+    if (!silent) { const t = state.push('math', '', 0); t.content = src.slice(start, end).trim(); t.markup = d; t.info = label?.[1] || ''; }
+    state.pos = end + d.length + (label ? label[0].length : 0);
     return true;
   });
-  md.renderer.rules.math = (tokens: any, idx: number) => `<span class="math${tokens[idx].markup === '$$' ? ' math-display' : ''}" data-tex="${escapeHtml(tokens[idx].content)}"></span>`;
+  md.renderer.rules.math = (tokens: any, idx: number, _o: unknown, env: any) => {
+    const t = tokens[idx];
+    const n = t.info && env?.cite?.refs.get(t.info);
+    return `<span class="math${t.markup === '$$' ? ' math-display' : ''}" data-tex="${escapeHtml(t.content + (n ? ` \\tag{${n}}` : ''))}"></span>`;
+  };
 }
 
 /** Fills sanitised math placeholders with MathML; a paragraph holding only display math becomes an unbreakable block. */

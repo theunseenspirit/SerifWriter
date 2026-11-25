@@ -3,8 +3,8 @@
 A private, offline writing app that typesets your words into book pages **as you write**.
 Your manuscript lives in your browser's own database on your Mac — no accounts, no servers —
 and appears beside you as a real book: drop caps, small capitals, running heads, fleurons.
-For scholars it also sets citations and a bibliography from BibTeX, TeX mathematics and numbered
-sections, in a university-press template or any other.
+For scholars it also sets citations and a bibliography from BibTeX, TeX mathematics, numbered
+sections, and numbered figures, tables and equations with cross-references.
 
 ![Classic Leather](docs/classic-leather.jpg)
 
@@ -55,13 +55,18 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 |---|---|
 | `---` on its own line, with a blank line before it | a scene-break ornament |
 | `Text.[^1]` … `[^1]: The note.` | a footnote at the foot of the page (or chapter endnotes) |
+| `Text.^[The note, inline.]` | the same footnote, written in place |
 | `# Heading` at the top of a chapter | the chapter's title (the opening page) |
 | `#`…`######` elsewhere | part / chapter / section / subsection… — configurable per template |
 | `<!-- pagebreak -->` | a page break |
 | `"quotes"`, `--`, `---`, `...` | “curly quotes”, en dash, em dash, ellipsis |
 | `[@key]`, `[see @key, 33–35; @other]` | a citation: (Doe 2001, 33–35), [1, 33] or a footnote, by style |
 | `[-@key]`, `@key`, `@key [33]` | year only (2001); narrative Doe (2001) or Doe (2001, 33) |
-| `$e^{i\pi}+1=0$`, `$$ … $$` | inline and display mathematics (`\tag{1}` numbers an equation) |
+| `$e^{i\pi}+1=0$`, `$$ … $$` | inline and display mathematics (`\tag{1}` numbers an equation by hand) |
+| `![A map](…){#fig:map}` | Figure 1. A map — a numbered figure |
+| `Table: Results {#tbl:res}` beside a table | Table 1. Results — a numbered caption above it |
+| `$$ … $$ {#eq:gauss}` | an equation numbered (1) |
+| `@fig:map`, `[see @tbl:res]`, `@eq:gauss` | Figure 1, see Table 1, Equation (1) |
 
 **Book details** are YAML front matter in the *Title Page* section (or *Book details* in the top bar):
 
@@ -101,6 +106,12 @@ as 2001a / 2001b. *Design ▸ Notes & flow ▸ Citations* chooses the style for 
 
 A key missing from the bibliography shows in red. Citations come out right in every export.
 
+### Cross-references
+
+Label a figure, table or equation as above and refer to it anywhere in the book with `@fig:…`,
+`@tbl:…` or `@eq:…` (Pandoc-crossref syntax). Each kind is numbered in order through the book, and
+the numbers follow when you move things around. An unknown label shows in red.
+
 ### Mathematics
 
 `$…$` is inline and `$$…$$` display math, in LaTeX syntax, set as MathML (a dollar followed by a
@@ -112,6 +123,7 @@ for books that contain math. Errors show in red, with the message on hover.
 | Keys | |
 |---|---|
 | ⌘B / ⌘I / ⌘K | bold / italic / link |
+| ⌘⇧N | footnote at the caret: `^[…]`, written right where it belongs |
 | ⌘S | save now (it already saved) |
 | ⌘F | find & replace in the whole book (match case, whole words, regular expressions) |
 | ⌘⇧K | insert a citation: search your bibliography by author, year, title or key |
@@ -121,7 +133,28 @@ for books that contain math. Errors show in red, with the message on hover.
 | Tab / ⇧Tab in a list | indent / outdent |
 | Reading mode | ← → Space PageUp PageDown Home End, Esc to close |
 
-Click anywhere on a page in the preview to jump to that paragraph in the editor.
+Click anywhere on a page in the preview to jump to that paragraph in the editor. Drop a `.bib`,
+`.md` or `.txt` file onto the editor to insert its text, or an image to place it.
+
+## Writing stats
+
+Click the word count at the bottom left (in the sidebar, or under the editor when the sidebar is
+hidden), or the chart icon in the top bar, to see how you write. Everything is recorded as you type
+and stays on your computer.
+
+* **Habits:** words today (against an optional daily goal), your writing streak and best streak,
+  the last seven days, an average writing day, time spent writing and your pace in words an hour,
+  and the book's length against an optional target.
+* **Words per day** for the last 30 days, with your goal marked and a table view.
+* **Writing days** for the last six months, as a calendar.
+* **When you write:** minutes by hour of day, to find your best hours.
+* **Book length over time**, and **chapter lengths** side by side, to see the book's balance.
+* **The prose:** average and longest sentence, Flesch reading ease (English), vocabulary variety
+  per 1,000 words, and your most-used words, so repetitions stand out.
+
+Words per day are *net*: cutting a page counts against the day, as it should. Writing time counts
+the stretches you are typing, with pauses under two minutes. Stats travel with the book in
+backups and the folder mirror.
 
 ## Design
 
@@ -141,7 +174,8 @@ Six templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
 
 *Design* adjusts everything: accent presets or any colour, ink and paper, text and display fonts
 (Cardo, EB Garamond, Crimson Pro, Libre Baskerville, Cormorant — all bundled, all offline), size,
-line spacing, indent, justification, hyphenation, page size (5 × 8, 5.5 × 8.5, 6 × 9, A5, Letter),
+line spacing, indent, justification, hyphenation, page size (5 × 8, 5.5 × 8.5, 6 × 9, Royal,
+7 × 10, A5, A4, Letter),
 margins, two-sided layout, where chapters start and how far down, chapter/part labels, drop caps,
 small-cap lead-ins, ornament sets, scene breaks, running heads and folios, heading roles, footnote
 placement, citation style, section numbering, widows/orphans, and custom CSS. *Save as new template* keeps it for every book; templates

@@ -70,7 +70,17 @@ export interface Project {
   words: number;
   ui: ProjectUI;
   mirror?: MirrorState;
-  goal?: number;
+  goal?: number; // target length in words
+  stats?: WritingStats;
+}
+
+/** Writing habits, recorded as you write (local only). */
+export interface WritingStats {
+  /** Per local day (YYYY-MM-DD): net words added, active minutes, book length at day's end. */
+  days: Record<string, { w: number; m: number; t: number }>;
+  /** Active minutes by hour of day, 0–23. */
+  hours: number[];
+  dailyGoal?: number;
 }
 
 export interface SnapshotMeta {
@@ -101,7 +111,7 @@ export interface Asset {
 
 // ───────────────────────── Templates ─────────────────────────
 
-export type PageSizeId = '5x8' | '5.5x8.5' | '6x9' | 'a5' | 'letter';
+export type PageSizeId = '5x8' | '5.5x8.5' | '6x9' | 'royal' | '7x10' | 'a5' | 'a4' | 'letter';
 export type FontId = 'cardo' | 'ebgaramond' | 'crimsonpro' | 'librebaskerville' | 'cormorant';
 export type HeadingRole = 'part' | 'chapter' | 'section' | 'subsection' | 'minor' | 'runin';
 export type OrnamentSetId = 'classic' | 'victorian' | 'modern' | 'minimal' | 'none';

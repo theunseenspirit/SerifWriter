@@ -5,7 +5,7 @@ import { applyBookRoot, effectiveSettings, getTemplate, injectTemplateCss } from
 import { ensureFonts } from './fonts.ts';
 import { formatLabel, hashString, toRoman, yieldToMain } from '../util.ts';
 import { KINDS, plainTitle } from '../model/defaults.ts';
-import { citeContext, type CiteCtx } from '../md/cite.ts';
+import { citeContext, citeDependent, type CiteCtx } from '../md/cite.ts';
 import { loadMath, mathReady } from '../md/math.ts';
 
 // Book assembly: per-section pagination jobs (cached by a content+settings
@@ -141,7 +141,7 @@ export class BookLayout {
     const withMath = changed.map((id) => this.byId.get(id)?.content || '');
     if (!mathReady()) void loadMath(withMath).then((loaded) => { if (loaded) for (const id of this.visibleIds()) if (this.byId.get(id)!.content.includes('$')) this.enqueue(id); });
     // New or changed citations renumber (and re-list) every citing section.
-    if (this.refreshCite()) for (const id of this.visibleIds()) { const k = this.byId.get(id)!; if (k.kind === 'bibliography' || k.content.includes('@')) this.enqueue(id); }
+    if (this.refreshCite()) for (const id of this.visibleIds()) { const k = this.byId.get(id)!; if (k.kind === 'bibliography' || citeDependent(k.content)) this.enqueue(id); }
     // sections never laid out (new ones)
     for (const id of this.visibleIds()) if (!this.states.get(id)!.pages && !this.queue.includes(id)) this.enqueue(id);
     this.scheduleAssemble(true);
@@ -164,7 +164,7 @@ export class BookLayout {
     if (sec.kind === 'title') extra = JSON.stringify(this.project.meta) + (this.settings.titlePage.layout === 'manuscript' ? Math.round(this.project.words / 100) : '');
     else if (sec.kind === 'copyright') extra = JSON.stringify(this.project.meta);
     else if (sec.kind === 'toc') extra = JSON.stringify(this.tocEntries());
-    if (this.cite && (sec.kind === 'bibliography' || sec.content.includes('@'))) extra += this.cite.key;
+    if (this.cite && (sec.kind === 'bibliography' || citeDependent(sec.content))) extra += this.cite.key;
     if (mathReady() && sec.content.includes('$')) extra += 'math';
     return hashString(`${sec.kind}\u0000${sec.title}\u0000${sec.content}\u0000${extra}`) + this.settingsKey;
   }

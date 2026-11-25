@@ -8,6 +8,7 @@ import { fmtNum } from '../util.ts';
 // "…" for options.
 
 export interface SidebarOptions {
+  onStats: () => void;
   onSelect: (id: string) => void;
   onReorder: (ids: string[]) => void;
   onAdd: (kind: SectionKind, afterId: string | null) => void;
@@ -34,7 +35,8 @@ export class Sidebar {
   constructor(opts: SidebarOptions) {
     this.opts = opts;
     this.list = h('ol', { class: 'sb-list', role: 'listbox', 'aria-label': 'Sections' });
-    this.totals = h('div', { class: 'sb-totals' });
+    this.totals = h('button', { class: 'sb-totals', type: 'button', title: 'Writing stats' });
+    this.totals.addEventListener('click', () => opts.onStats());
     const add = h('button', { class: 'btn sb-add', type: 'button' }, icon('plus', 16), h('span', null, 'Add'));
     add.addEventListener('click', () => this.addMenu(add, this.active));
     this.el = h('aside', { class: 'sidebar' },
