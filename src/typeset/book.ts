@@ -395,8 +395,6 @@ export class BookLayout {
 
       let secHead = ''; // the section in force: the first one starting on a page, else carried over
       st.pages.forEach((page, i) => {
-        const hs = page.querySelector('.h-section');
-        if (hs) secHead = (hs.textContent || '').trim();
         const frame = this.frameFor(page);
         place(frame, group!, cursor);
         cursor = frame.nextSibling;
@@ -419,6 +417,15 @@ export class BookLayout {
           else setText(lbl, formatLabel(s.chapter.partLabel, ++partNo));
         }
         for (const hn of Array.from(page.querySelectorAll<HTMLElement>('.h-num'))) setText(hn, sec.kind === 'chapter' ? `${chapterNo}.${hn.dataset.hnum}\u2002` : hn.dataset.hnum + '\u2002');
+        const hs = page.querySelector<HTMLElement>('.h-section');
+        if (hs) {
+          // "§1.4 Certainty": the full number, marked so it isn't read as a page number
+          const hnum = hs.querySelector<HTMLElement>('.h-num')?.dataset.hnum;
+          const t = hs.cloneNode(true) as HTMLElement;
+          t.querySelectorAll('.h-num, .idx, .fn-ref').forEach((x) => x.remove());
+          const title = (t.textContent || '').trim();
+          secHead = hnum ? `§${sec.kind === 'chapter' ? `${chapterNo}.${hnum}` : hnum}\u2002${title}` : title;
+        }
 
         const isOpener = page.dataset.opener === '1' || page.dataset.fixed === '1' || i === 0 && !!(st.pages![0].querySelector('.opener'));
         const front = !bodyStarted;
