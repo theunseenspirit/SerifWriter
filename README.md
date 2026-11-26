@@ -98,6 +98,8 @@ page understands `{author} {title} {year} {thisYear} {publisher} {font}`.
 (generated, with page numbers — parts and chapters, plus sections and subsections as you choose in
 *Design ▸ Headings*), part divider, chapter, unnumbered chapter (preface, afterword…),
 about the author, bibliography. Drag to reorder, or select one and press ⌥↑ / ⌥↓.
+The selected one also shows its own sections (`## `) and subsections (`### `), indented
+beneath it; click one to jump there.
 
 ### Citations and bibliography
 

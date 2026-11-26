@@ -79,6 +79,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   const sidebar = new Sidebar({
     onStats: () => void openStats(),
     onSelect: (id) => select(id),
+    onJump: (id, line) => { select(id, false); requestAnimationFrame(() => { editor.goToLine(line); preview.follow(id, line); }); },
     onReorder: (ids) => { session.reorder(ids); renderSidebar(); book.updateSections(session.project, session.sections, [], currentId || undefined); },
     onAdd: (kind, after) => void addSection(kind, after),
     onRename: (id) => void renameSection(id),
@@ -148,6 +149,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     const ps = pageSize(s);
     preview.setPageSize(ps.w, ps.h);
     sidebar.setHidden(s.hiddenKinds);
+    sidebar.setHeadings(s.headings, s.numberHeadings);
   };
   applyPageSize();
   let firstLayout = true;

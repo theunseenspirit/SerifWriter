@@ -178,6 +178,25 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await page.waitForTimeout(300);
   const titles2 = await page.locator('.sb-item .sb-title').allTextContents();
   check('Alt+↑ moves a chapter up', titles2.indexOf('A Third Chapter') === titles.indexOf('A Third Chapter') - 1);
+  // ── sidebar outline: the selected chapter's headings, indented, opening and closing ──
+  await page.locator('.sb-item', { hasText: 'A Third Chapter' }).click();
+  await page.locator('.editor-ta').press('Control+End');
+  await page.keyboard.type('\n\n## The Argument\n\nWords.\n\n### A Premise\n\nMore words.\n\n## The Reply');
+  await page.waitForTimeout(900);
+  const subs = await page.locator('.sb-outline.open .sb-sub').evaluateAll((els) => els.map((e) => ({ t: e.textContent, lv: e.className.includes('lv-2') ? 2 : 1, x: e.querySelector('.sb-sub-title').getBoundingClientRect().left })));
+  check('the selected chapter shows its sections and subsections, subsections indented', subs.map((x) => x.t).join('|') === 'The Argument|A Premise|The Reply' && subs[1].x > subs[0].x && subs[2].x === subs[0].x, JSON.stringify(subs));
+  const under = await page.evaluate(() => document.querySelector('.sb-outline')?.previousElementSibling?.textContent || '');
+  check('the outline sits under its chapter', under.includes('A Third Chapter'));
+  await page.locator('.sb-item', { hasText: 'The First Light' }).click();
+  await page.waitForTimeout(500);
+  check('other chapters’ headings are hidden', await page.locator('.sb-sub', { hasText: 'The Argument' }).count() === 0);
+  await page.locator('.sb-item', { hasText: 'A Third Chapter' }).click();
+  await page.waitForTimeout(500);
+  await page.locator('.sb-sub', { hasText: 'A Premise' }).click();
+  await page.waitForTimeout(200);
+  const caretLine = await page.locator('.editor-ta').evaluate((ta) => ta.value.slice(0, ta.selectionStart).split('\n').length - 1);
+  const premiseLine = (await textOf(page)).split('\n').indexOf('### A Premise');
+  check('a heading in the outline jumps the editor to it', caretLine === premiseLine, `${caretLine} vs ${premiseLine}`);
   await idle(page);
   const toc = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root .toc-entry .toc-title')).map((e) => e.textContent));
   check('contents page lists the new chapter', toc.includes('A Third Chapter'), toc.join(' | '));
