@@ -1,15 +1,18 @@
-import type { Section, SectionKind } from '../model/types.ts';
+import type { Section, SectionKind, TemplateSettings } from '../model/types.ts';
 import { h, icon } from './dom.ts';
 import { showMenu, type MenuItem } from './dialogs.ts';
 import { KINDS, KIND_ORDER, sectionTitle } from '../model/defaults.ts';
 import { fmtNum } from '../util.ts';
+import { outline, type OutlineEntry } from '../model/outline.ts';
 
 // The book's sections in order. Drag to reorder (or Alt+↑/↓), right-click or
-// "…" for options.
+// "…" for options. Under the selected one, its sections and subsections, which
+// open and close as the selection moves; a click jumps the editor there.
 
 export interface SidebarOptions {
   onStats: () => void;
   onSelect: (id: string) => void;
+  onJump: (id: string, line: number) => void;
   onReorder: (ids: string[]) => void;
   onAdd: (kind: SectionKind, afterId: string | null) => void;
   onRename: (id: string) => void;
@@ -31,6 +34,11 @@ export class Sidebar {
   private hidden = new Set<SectionKind>();
   private dragId: string | null = null;
   private opts: SidebarOptions;
+  private headings: TemplateSettings['headings'] = { h1: 'chapter', h2: 'section', h3: 'subsection', h4: 'minor', h5: 'minor', h6: 'runin' };
+  private numbered = false;
+  private outlineEl: HTMLElement | null = null; // the open outline under the active row
+  private outlineKey = '';
+  private rendered = false;
 
   constructor(opts: SidebarOptions) {
     this.opts = opts;
@@ -48,9 +56,19 @@ export class Sidebar {
 
   setHidden(kinds: SectionKind[]): void { this.hidden = new Set(kinds); }
 
+  setHeadings(headings: TemplateSettings['headings'], numbered: boolean): void {
+    this.headings = headings;
+    this.numbered = numbered;
+    this.outlineKey = ''; // rebuild on the next render
+  }
+
   render(sections: Section[], active: string | null, totals: { words: number; today: number; pages: number }): void {
+    const was = this.active;
+    const wasOutline = this.outlineEl;
+    const animate = this.rendered && was !== active;
     this.sections = sections;
     this.active = active;
+    this.rendered = true;
     let chapterNo = 0;
     const rows = sections.map((s) => {
       const isChapter = s.kind === 'chapter';
@@ -76,6 +94,15 @@ export class Sidebar {
       return li;
     });
     this.list.replaceChildren(...rows);
+    this.outlineEl = null;
+    this.outlineKey = '';
+    // The outline of the section just left closes where it was.
+    if (animate && wasOutline && was) {
+      const row = this.row(was);
+      if (row) { row.after(wasOutline); this.collapse(wasOutline); }
+    }
+    const cur = active ? sections.find((x) => x.id === active) : undefined;
+    if (cur) this.refreshOutline(cur, animate);
     this.totals.replaceChildren(
       h('div', { class: 'sb-total-main' }, h('strong', null, fmtNum(totals.words)), ' words'),
       h('div', { class: 'sb-total-sub' }, totals.today > 0 ? `+${fmtNum(totals.today)} today` : totals.today < 0 ? `${fmtNum(totals.today)} today` : 'Nothing yet today', totals.pages ? ` · ${totals.pages} pages` : ''),
@@ -83,7 +110,8 @@ export class Sidebar {
   }
 
   updateWords(s: Section, totals: { words: number; today: number; pages: number }): void {
-    const li = this.list.querySelector<HTMLElement>(`[data-id="${s.id}"]`);
+    if (s.id === this.active) this.refreshOutline(s, true);
+    const li = this.row(s.id);
     if (li) {
       const w = li.querySelector('.sb-words');
       if (w && s.kind !== 'title' && s.kind !== 'toc') w.textContent = s.words ? fmtNum(s.words) : '';
@@ -95,6 +123,62 @@ export class Sidebar {
     if (main) main.textContent = fmtNum(totals.words);
     const sub = this.totals.querySelector('.sb-total-sub');
     if (sub) sub.textContent = `${totals.today > 0 ? `+${fmtNum(totals.today)} today` : totals.today < 0 ? `${fmtNum(totals.today)} today` : 'Nothing yet today'}${totals.pages ? ` · ${totals.pages} pages` : ''}`;
+  }
+
+  private row(id: string): HTMLElement | null {
+    return this.list.querySelector<HTMLElement>(`.sb-item[data-id="${id}"]`);
+  }
+
+  /** Builds, updates or removes the outline under the active row. */
+  private refreshOutline(s: Section, animate: boolean): void {
+    const entries = outline(s.content, this.headings, this.numbered);
+    const key = JSON.stringify(entries);
+    if (key === this.outlineKey && (this.outlineEl || !entries.length)) return;
+    this.outlineKey = key;
+    if (!entries.length) {
+      if (this.outlineEl) { this.collapse(this.outlineEl); this.outlineEl = null; }
+      return;
+    }
+    const row = this.row(s.id);
+    if (!row) return;
+    const chapterNo = s.kind === 'chapter' ? this.sections.filter((x, i) => x.kind === 'chapter' && i <= this.sections.indexOf(s)).length : 0;
+    const items = entries.map((e) => this.outlineItem(s, e, chapterNo));
+    if (this.outlineEl) { this.outlineEl.querySelector('.sb-subs')!.replaceChildren(...items); return; }
+    const list = h('ol', { class: 'sb-subs', role: 'group', 'aria-label': `Headings in ${sectionTitle(s)}` }, ...items);
+    const el = h('li', { class: 'sb-outline', role: 'none' }, h('div', { class: 'sb-outline-inner' }, list));
+    row.after(el);
+    this.outlineEl = el;
+    if (animate) {
+      void el.offsetHeight; // start from closed
+      requestAnimationFrame(() => el.classList.add('open'));
+    } else el.classList.add('open');
+  }
+
+  private outlineItem(s: Section, e: OutlineEntry, chapterNo: number): HTMLElement {
+    const num = e.hnum ? (chapterNo ? `${chapterNo}.${e.hnum}` : e.hnum) : '';
+    const li = h('li', { class: `sb-sub lv-${e.level}`, role: 'option', tabindex: '-1', 'aria-selected': 'false', title: e.title },
+      num ? h('span', { class: 'sb-sub-num' }, num) : null,
+      h('span', { class: 'sb-sub-title' }, e.title));
+    li.addEventListener('click', () => this.opts.onJump(s.id, e.line));
+    li.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') { ev.preventDefault(); this.opts.onJump(s.id, e.line); }
+      else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') { ev.preventDefault(); this.focusStep(li, ev.key === 'ArrowUp' ? -1 : 1); }
+    });
+    return li;
+  }
+
+  private collapse(el: HTMLElement): void {
+    void el.offsetHeight; // it may have just been put back: close from open
+    el.classList.remove('open');
+    el.classList.add('closing');
+    el.setAttribute('aria-hidden', 'true');
+    setTimeout(() => el.remove(), 320);
+  }
+
+  /** Moves focus to the row or heading above or below. */
+  private focusStep(from: HTMLElement, delta: number): void {
+    const items = Array.from(this.list.querySelectorAll<HTMLElement>('.sb-item, .sb-outline.open .sb-sub'));
+    items[items.indexOf(from) + delta]?.focus();
   }
 
   private addMenu(anchor: HTMLElement | { x: number; y: number }, after: string | null): void {
@@ -130,15 +214,12 @@ export class Sidebar {
     if (i < 0 || j < 0 || j >= ids.length) return;
     [ids[i], ids[j]] = [ids[j], ids[i]];
     this.opts.onReorder(ids);
-    requestAnimationFrame(() => this.list.querySelector<HTMLElement>(`[data-id="${id}"]`)?.focus());
+    requestAnimationFrame(() => this.row(id)?.focus());
   }
 
   private onKey(e: KeyboardEvent, s: Section): void {
-    const items = Array.from(this.list.children) as HTMLElement[];
-    const i = items.findIndex((x) => x.dataset.id === s.id);
     if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { e.preventDefault(); this.move(s.id, e.key === 'ArrowUp' ? -1 : 1); return; }
-    if (e.key === 'ArrowDown') { e.preventDefault(); items[i + 1]?.focus(); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); items[i - 1]?.focus(); }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); this.focusStep(e.currentTarget as HTMLElement, e.key === 'ArrowUp' ? -1 : 1); }
     else if (e.key === 'Enter') { e.preventDefault(); this.opts.onSelect(s.id); }
     else if (e.key === 'Delete' || e.key === 'Backspace') { if (e.metaKey || e.ctrlKey) { e.preventDefault(); this.opts.onDelete(s.id); } }
   }
