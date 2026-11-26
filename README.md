@@ -207,8 +207,8 @@ Six templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
 (Cardo, EB Garamond, Crimson Pro, Libre Baskerville, Cormorant — all bundled, all offline), size,
 line spacing, indent, justification, hyphenation, page size (5 × 8, 5.5 × 8.5, 6 × 9, Royal,
 7 × 10, A5, A4, Letter),
-margins, two-sided layout, where chapters start and how far down, chapter/part labels, drop caps,
-small-cap lead-ins, ornament sets, scene breaks, running heads and folios, heading roles, footnote
+margins, two-sided layout, where chapters start and how far down, chapter/part labels, drop caps and
+the small-cap lead-ins beside them, ornament sets, scene breaks, running heads and folios, heading roles, footnote
 placement, citation style, section numbering, section running heads, small caps for abbreviations,
 widows/orphans, and custom CSS. *Save as new template* keeps it for every book; templates
 export and import as `.json`.
