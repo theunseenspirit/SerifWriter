@@ -1,5 +1,6 @@
 /* Pocket Edition — light, delicate, italic heads. */
 .tpl-pocket {
+  --toc-title-x: 2.4em; /* chapter-number column on the contents page */
   & .pg-head { font-size: 9.5pt; font-style: italic; }
   & .pg-foot { font-size: 9.5pt; }
 

@@ -247,8 +247,12 @@
 .sw-book .toc-part { justify-content: center; margin-top: calc(var(--lh) * 1em); margin-bottom: calc(var(--lh) * .25em); text-align: center; }
 .sw-book .toc-part .toc-leader, .sw-book .toc-part .toc-num { display: none; }
 .sw-book .toc-back { margin-top: calc(var(--lh) * .5em); }
-.sw-book .toc-sub { padding-left: 1.8em; }
-.sw-book .toc-subsub { padding-left: 3.6em; }
+/* --toc-title-x: where chapter titles start, after the chapter-number column (templates with a wider column set it).
+   Numbered sections hang their numbers under the chapter title; unnumbered ones step in from it. */
+.sw-book .toc-sub { padding-left: var(--toc-title-x, 1.8em); }
+.sw-book .toc-subsub { padding-left: calc(var(--toc-title-x, 1.8em) + 2.2em); }
+.sw-book .toc-sub.toc-nonum { padding-left: calc(var(--toc-title-x, 1.8em) + 1.5em); }
+.sw-book .toc-subsub.toc-nonum { padding-left: calc(var(--toc-title-x, 1.8em) + 3em); }
 .sw-book .toc-sub :is(.toc-label, .toc-title) { font-size: .92em; }
 .sw-book .toc-subsub :is(.toc-label, .toc-title) { font-size: .86em; }
 .sw-book :is(.toc-sub, .toc-subsub) .toc-label { min-width: 2.4em; font-variant-numeric: lining-nums; }

@@ -8,6 +8,7 @@ import { outline, type OutlineEntry } from '../model/outline.ts';
 // The book's sections in order. Drag to reorder (or Alt+↑/↓), right-click or
 // "…" for options. Under the selected one, its sections and subsections, which
 // open and close as the selection moves; a click jumps the editor there.
+// Clicking the selected row again (or ←/→ on it) folds or unfolds them.
 
 export interface SidebarOptions {
   onStats: () => void;
@@ -38,6 +39,7 @@ export class Sidebar {
   private numbered = false;
   private outlineEl: HTMLElement | null = null; // the open outline under the active row
   private outlineKey = '';
+  private folded = false; // the selected row's outline folded away by the writer
   private rendered = false;
 
   constructor(opts: SidebarOptions) {
@@ -66,6 +68,7 @@ export class Sidebar {
     const was = this.active;
     const wasOutline = this.outlineEl;
     const animate = this.rendered && was !== active;
+    if (was !== active) this.folded = false;
     this.sections = sections;
     this.active = active;
     this.rendered = true;
@@ -85,7 +88,11 @@ export class Sidebar {
       s.kind !== 'title' && s.kind !== 'toc' ? h('span', { class: 'sb-words' }, s.words ? fmtNum(s.words) : '') : h('span', { class: 'sb-words' }),
       more);
       li.dataset.id = s.id;
-      li.addEventListener('click', (e) => { if (!more.contains(e.target as Node)) this.opts.onSelect(s.id); });
+      li.addEventListener('click', (e) => {
+        if (more.contains(e.target as Node)) return;
+        if (s.id === this.active) this.fold(!this.folded);
+        this.opts.onSelect(s.id);
+      });
       li.addEventListener('contextmenu', (e) => { e.preventDefault(); this.itemMenu({ x: e.clientX, y: e.clientY }, s); });
       more.addEventListener('click', (e) => { e.stopPropagation(); this.itemMenu(more, s); });
       li.addEventListener('keydown', (e) => this.onKey(e, s));
@@ -131,6 +138,7 @@ export class Sidebar {
 
   /** Builds, updates or removes the outline under the active row. */
   private refreshOutline(s: Section, animate: boolean): void {
+    if (this.folded) return;
     const entries = outline(s.content, this.headings, this.numbered);
     const key = JSON.stringify(entries);
     if (key === this.outlineKey && (this.outlineEl || !entries.length)) return;
@@ -147,6 +155,7 @@ export class Sidebar {
     const list = h('ol', { class: 'sb-subs', role: 'group', 'aria-label': `Headings in ${sectionTitle(s)}` }, ...items);
     const el = h('li', { class: 'sb-outline', role: 'none' }, h('div', { class: 'sb-outline-inner' }, list));
     row.after(el);
+    row.setAttribute('aria-expanded', 'true');
     this.outlineEl = el;
     if (animate) {
       void el.offsetHeight; // start from closed
@@ -165,6 +174,20 @@ export class Sidebar {
       else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') { ev.preventDefault(); this.focusStep(li, ev.key === 'ArrowUp' ? -1 : 1); }
     });
     return li;
+  }
+
+  /** Folds the selected row's outline away, or brings it back. */
+  private fold(folded: boolean): void {
+    if (folded === this.folded || (folded && !this.outlineEl)) return; // nothing to fold
+    this.folded = folded;
+    const cur = this.sections.find((x) => x.id === this.active);
+    if (!cur) return;
+    if (folded) {
+      if (this.outlineEl) { this.collapse(this.outlineEl); this.outlineEl = null; this.row(cur.id)?.setAttribute('aria-expanded', 'false'); }
+    } else {
+      this.outlineKey = '';
+      this.refreshOutline(cur, true);
+    }
   }
 
   private collapse(el: HTMLElement): void {
@@ -221,6 +244,7 @@ export class Sidebar {
     if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { e.preventDefault(); this.move(s.id, e.key === 'ArrowUp' ? -1 : 1); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); this.focusStep(e.currentTarget as HTMLElement, e.key === 'ArrowUp' ? -1 : 1); }
     else if (e.key === 'Enter') { e.preventDefault(); this.opts.onSelect(s.id); }
+    else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && s.id === this.active) { e.preventDefault(); this.fold(e.key === 'ArrowLeft'); }
     else if (e.key === 'Delete' || e.key === 'Backspace') { if (e.metaKey || e.ctrlKey) { e.preventDefault(); this.opts.onDelete(s.id); } }
   }
 

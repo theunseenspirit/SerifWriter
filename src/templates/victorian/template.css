@@ -1,5 +1,6 @@
 /* Ornate Victorian — ruled heads, scrollwork, framed title page. */
 .tpl-victorian {
+  --toc-title-x: 3.2em; /* chapter-number column on the contents page */
   & .spaced, & .op-label, & .tp-title, & .tp-by, & .tp-author, & .tp-publisher,
   & .pt-label, & .pt-title, & .h-section, & .toc-part, & .pg-head .pg-rh { text-transform: uppercase; letter-spacing: .14em; }
   & .pg-head { font-size: 7.6pt; border-bottom: .5pt solid currentColor; padding-bottom: 3.5pt; height: auto; top: calc(var(--by) + var(--m-top) - var(--head-sep) - .95em); }
