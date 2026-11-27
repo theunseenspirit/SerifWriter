@@ -157,12 +157,14 @@ function argument(el: HTMLElement, prev?: Element, next?: Element): HTMLElement[
     const src = ARG_SOURCE.exec(text);
     if (src) text = text.slice(0, src.index);
     const p = h('p', `arg-line ${m[1].startsWith('C') ? 'arg-concl' : 'arg-prem'}`,
-      `<span class="arg-label">${m[1]} </span>${text}${src ? `<span class="arg-src"> (${src[1].trim()})</span>` : ''}`);
+      // The source comes first so it floats beside the statement's first line, where the text makes room for it.
+      `<span class="arg-label">${m[1]} </span>${src ? `<span class="arg-src"><span class="arg-paren">(</span>${src[1].trim()}<span class="arg-paren">) </span></span>` : ''}${text}`);
     if (el.dataset.line) p.dataset.line = String(first + k);
     return p;
   });
-  // A conclusion never starts a page apart from the premise just before it.
-  out.forEach((p, k) => { if (p.classList.contains('arg-prem') && out[k + 1]?.classList.contains('arg-concl')) p.classList.add('keep-next'); });
+  // The argument's last line, when a conclusion, is its final one: ruled off, and never alone atop a page.
+  const last = out[out.length - 1];
+  if (last.classList.contains('arg-concl')) { last.classList.add('arg-final'); out[out.length - 2]?.classList.add('keep-next'); }
   return out;
 }
 
@@ -266,6 +268,9 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
         span.dataset.hnum = hn;
         el.prepend(span);
       }
+      // In a book of arguments, a section's own number (1.3) hangs in the column of its labels (P1, C).
+      const own = s.type.arguments && !s.numberHeadings && (role === 'section' || role === 'subsection') ? /^(\d+(?:\.\d+)*)\.?\s+/.exec(el.innerHTML) : null;
+      if (own) { el.innerHTML = `<span class="h-lead">${own[1]} </span>${el.innerHTML.slice(own[0].length)}`; el.classList.add('h-hang'); }
       if (role === 'section' || role === 'subsection') {
         const id = `${sec.id}:h${++n}`;
         el.dataset.tocId = id;

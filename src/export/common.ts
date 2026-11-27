@@ -138,7 +138,7 @@ a { color: inherit; }
 .bib-entry { text-indent: -2em; padding-left: 2em; text-align: left; margin-bottom: .4em; }
 .sc { font-variant: small-caps; }
 .abbr { font-variant: all-small-caps; letter-spacing: .04em; }
-p.arg-line { padding-left: 2.6em; text-indent: -2.6em; text-align: left; margin: .2em 0 0; } .arg-label { display: inline-block; width: 2.6em; text-indent: 0; color: ${s.color.accent}; } .arg-src { float: right; margin-left: 1em; font-size: .85em; opacity: .65; } p.arg-prem + p.arg-concl { border-top: .5pt solid; padding-top: .3em; margin-top: .45em; }
+p.arg-line { padding-left: 5.2em; text-indent: -2.6em; text-align: left; margin: .2em 0 0; } .arg-label { display: inline-block; width: 2.6em; text-indent: 0; color: ${s.color.accent}; } .arg-src { float: right; margin-left: 1em; font-size: .85em; opacity: .65; } p.arg-line + p.arg-final { border-top: .4pt solid; padding-top: .3em; margin-top: .45em; }
 p.ind { text-indent: 0; text-align: left; } p.ind1 { margin-left: 2em; } p.ind2 { margin-left: 4em; } p.ind3 { margin-left: 6em; } p.ind4 { margin-left: 8em; }
 .tbl-cap { text-indent: 0; text-align: center; font-size: .85em; }
 .cap-label { font-style: normal; font-variant: small-caps; }
