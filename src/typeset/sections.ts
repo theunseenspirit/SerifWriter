@@ -271,17 +271,15 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
     }
     if (isPlainParagraph(el)) {
       if (wantDrop) {
-        if (s.dropCap.enabled && /^[\s“"‘'(\[]*[\p{L}\p{N}]/u.test(el.textContent || '')) el.classList.add('dropcap');
-        else el.classList.add('first');
-        if (s.leadIn.mode === 'words') leadIn(el, s.leadIn.words);
-        else if (s.leadIn.mode === 'line') el.classList.add('leadin-line');
+        // Small-cap first words only ever accompany a drop cap.
+        if (s.dropCap.enabled && /^[\s“"‘'(\[]*[\p{L}\p{N}]/u.test(el.textContent || '')) {
+          el.classList.add('dropcap');
+          if (s.leadIn.mode === 'words') leadIn(el, s.leadIn.words);
+          else if (s.leadIn.mode === 'line') el.classList.add('leadin-line');
+        } else el.classList.add('first');
         wantDrop = false;
       } else if (afterBreak) {
         el.classList.add('after-break');
-        if (s.leadIn.afterBreak) {
-          if (s.leadIn.mode === 'words') leadIn(el, Math.min(3, s.leadIn.words));
-          else if (s.leadIn.mode === 'line') el.classList.add('leadin-line');
-        }
       }
       afterBreak = false;
     } else if (el.tagName !== 'DIV' || !el.classList.contains('force-break')) {

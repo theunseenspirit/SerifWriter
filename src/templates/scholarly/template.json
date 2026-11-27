@@ -1,7 +1,7 @@
 {
   "id": "scholarly",
   "name": "Scholarly Monograph",
-  "description": "A university-press interior for academic books: EB Garamond, numbered sections, author–date citations, footnotes at the foot of the page, flush-left openings and quiet running heads.",
+  "description": "A university-press interior for academic books: EB Garamond, author–date citations, footnotes at the foot of the page, flush-left openings and quiet running heads.",
   "cover": { "leather": "#1F2B3A", "foil": "#E4DCC8", "style": "cloth" },
   "accentPresets": [
     { "name": "Oxford blue", "value": "#22344F" },
@@ -23,7 +23,7 @@
     "headings": { "h1": "chapter", "h2": "section", "h3": "subsection", "h4": "minor", "h5": "minor", "h6": "runin" },
     "titlePage": { "layout": "classic", "frame": "none", "corners": false },
     "citations": "author-date",
-    "numberHeadings": true,
+    "numberHeadings": false,
     "tocDepth": 3,
     "widows": 2,
     "orphans": 2,
