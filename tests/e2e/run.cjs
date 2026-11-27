@@ -125,6 +125,7 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   const runOn = () => page.evaluate(() => Array.from(document.querySelectorAll('.pv-root .pg-content p')).some((p) => p.innerHTML.includes('P1. All men are mortal.<br>')));
   const indentBefore = await indentOf();
   const brBefore = await runOn();
+  const stretched = await page.evaluate(() => { const p = Array.from(document.querySelectorAll('.pv-root .pg-content p')).find((x) => x.innerHTML.includes('P1. All men are mortal.<br>')); p.classList.add('sw-split'); const v = getComputedStyle(p).textAlignLast; p.classList.remove('sw-split'); return v; });
   await page.getByRole('button', { name: 'Design' }).click();
   await page.locator('.ds-toggle', { hasText: 'Indent new paragraphs' }).locator('input').uncheck();
   await page.locator('.ds-toggle', { hasText: 'Return starts a new line' }).locator('input').uncheck();
@@ -133,6 +134,7 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   const indentAfter = await indentOf();
   check('“Indent new paragraphs” off sets every paragraph flush left', indentBefore && indentBefore !== '0px' && indentAfter === '0px', `${indentBefore} → ${indentAfter}`);
   check('a single Return starts a new line on the page, by default', brBefore);
+  check('lines ending in a Return are never stretched, even in a paragraph continued overleaf', stretched !== 'justify', stretched);
   check('turning “Return starts a new line” off runs the lines together, as in Markdown', !(await runOn()));
   check('and the settings are kept with the book', JSON.stringify(await page.evaluate(() => window.serifwriter.project().session.project.overrides.type)) === '{"autoIndent":false,"lineBreaks":false}');
   await page.locator('.ds-toggle', { hasText: 'Space between paragraphs' }).locator('input').check();

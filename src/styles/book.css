@@ -81,7 +81,8 @@
 
 /* ───────── Flowed text ───────── */
 .sw-book .pg-content p { margin: 0; text-indent: var(--indent); text-align: var(--text-align); hyphens: var(--hyphens); -webkit-hyphens: var(--hyphens); }
-.sw-book.justify .pg-content p.sw-split { text-align-last: justify; }
+/* A paragraph continued overleaf justifies its last line on the page; not one set line by line, where it would stretch every line ending in a Return. */
+.sw-book.justify .pg-content p.sw-split:not(:has(br)) { text-align-last: justify; }
 .sw-book .pg-content p.sw-cont,
 .sw-book .pg-content p.noindent,
 .sw-book .pg-content p.dropcap,
