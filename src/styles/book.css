@@ -82,7 +82,7 @@
 /* ───────── Flowed text ───────── */
 .sw-book .pg-content p { margin: 0; text-indent: var(--indent); text-align: var(--text-align); hyphens: var(--hyphens); -webkit-hyphens: var(--hyphens); }
 /* A paragraph continued overleaf justifies its last line on the page; not one set line by line, where it would stretch every line ending in a Return. */
-.sw-book.justify .pg-content p.sw-split:not(:has(br)) { text-align-last: justify; }
+.sw-book.justify .pg-content p.sw-split:not(:has(br)):not(.arg-line) { text-align-last: justify; }
 .sw-book .pg-content p.sw-cont,
 .sw-book .pg-content p.noindent,
 .sw-book .pg-content p.dropcap,
@@ -164,6 +164,20 @@
 .sw-book .pg-content p.ind1 { --n: 1; } .sw-book .pg-content p.ind2 { --n: 2; } .sw-book .pg-content p.ind3 { --n: 3; } .sw-book .pg-content p.ind4 { --n: 4; }
 .sw-book .pg-content p.ind + p:not(.ind) { text-indent: 0; margin-top: calc(var(--lh) * .5em); }
 .sw-book .pg-content :not(.ind) + p.ind { margin-top: calc(var(--lh) * .5em); }
+/* Arguments (type.arguments): each premise and conclusion its own block, the label in a column and
+   the text hanging beneath it, the source set to the right of the last line, and a rule over the
+   text of a conclusion that follows premises. */
+.sw-book .pg-content p.arg-line { --arg-col: 2.6em; margin: 0; padding-left: var(--arg-col); text-indent: calc(-1 * var(--arg-col)); text-align: left; hyphens: manual; -webkit-hyphens: manual; display: flow-root; }
+.sw-book .pg-content p.arg-line.sw-cont { text-indent: 0; }
+.sw-book .pg-content p.arg-line + p.arg-line { margin-top: .3em; }
+.sw-book .pg-content :not(.arg-line) + p.arg-line, .sw-book .pg-content p.arg-line + :not(.arg-line) { margin-top: calc(var(--lh) * .7em); }
+.sw-book .pg-content p.arg-line + p:not(.arg-line) { text-indent: 0; }
+.sw-book .arg-label { display: inline-block; width: var(--arg-col); text-indent: 0; color: var(--accent); font-variant-numeric: lining-nums tabular-nums; }
+.sw-book .arg-src { float: right; margin-left: 1.2em; text-indent: 0; font-size: .85em; font-variant-numeric: lining-nums; color: color-mix(in srgb, var(--ink) 58%, transparent); }
+.sw-book .pg-content p.arg-prem + p.arg-concl {
+  margin-top: .5em; padding-top: .4em;
+  background: linear-gradient(currentColor, currentColor) var(--arg-col) 0 / calc(100% - var(--arg-col)) .5pt no-repeat;
+}
 .sw-book .pg-content p.tbl-cap { text-indent: 0; text-align: center; font-size: .85em; margin-top: calc(var(--lh) * .5em); }
 .sw-book .pg-content p.tbl-cap + table { margin-top: .3em; }
 .sw-book .cap-label { font-style: normal; font-variant-caps: small-caps; letter-spacing: .03em; }
