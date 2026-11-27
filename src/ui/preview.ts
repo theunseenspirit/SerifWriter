@@ -21,6 +21,8 @@ export class Preview {
   spread = false;
   private pageWpx = 576;
   private lastUserScroll = 0;
+  /** When the reader last touched, clicked or wheeled the pages (programmatic scrolling does not count). */
+  touchedAt = 0;
   private programmatic = false;
   private ro: ResizeObserver;
   private opts: PreviewOptions;
@@ -48,6 +50,7 @@ export class Preview {
       this.updateStatus();
     }, { passive: true });
     this.view.addEventListener('click', (e) => this.onClick(e));
+    for (const ev of ['pointerdown', 'wheel', 'touchstart']) this.scroller.addEventListener(ev, () => { this.touchedAt = performance.now(); }, { passive: true });
     this.ro = new ResizeObserver(() => { if (this.zoom === 0) this.apply(); });
     this.ro.observe(this.scroller);
   }
@@ -147,7 +150,7 @@ export class Preview {
     if (ref) this.scrollToFrame(ref.frame);
   }
 
-  /** Scrolls straight to the page holding a source line, whatever the reader was doing. */
+  /** Scrolls straight to the page holding a source line. */
   reveal(sectionId: string, line: number): void {
     const ref = this.book?.pageForLine(sectionId, line) || this.book?.pageRefs.find((r) => r.sectionId === sectionId && !r.blank);
     if (ref) this.scrollToFrame(ref.frame, 'start', false);

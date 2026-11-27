@@ -11,7 +11,7 @@ export function openCitePicker(ctx: ProjectCtx): void {
   const { editor } = ctx;
   const sel = { a: editor.ta.selectionStart, b: editor.ta.selectionEnd };
   const m = modal('Insert citation', { wide: true, className: 'find-dlg' });
-  const q = h('input', { class: 'input', type: 'text', placeholder: 'Author, year, title or key', spellcheck: 'false' }) as HTMLInputElement;
+  const q = h('input', { class: 'input', type: 'search', placeholder: 'Author, year, title or key', spellcheck: 'false', autocapitalize: 'none', autocorrect: 'off', autocomplete: 'off', enterkeyhint: 'search' }) as HTMLInputElement;
   const list = h('ol', { class: 'find-results' });
   const strip = (s: string) => s.replace(/<[^>]+>/g, '');
   const rows = [...c.bib.values()].map((e) => ({ e, text: strip(`${e.key} ${e.names.map((n) => `${n.given} ${n.family}`).join(' ')} ${e.year} ${e.f.title || ''}`).toLowerCase() }));

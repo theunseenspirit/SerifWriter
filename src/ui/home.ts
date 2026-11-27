@@ -83,8 +83,8 @@ function mirrorChip(): HTMLElement {
 
 async function newBookDialog(): Promise<void> {
   const m = modal('New book', { wide: true });
-  const title = h('input', { class: 'input', type: 'text', placeholder: 'The title of your book' }) as HTMLInputElement;
-  const author = h('input', { class: 'input', type: 'text', placeholder: 'Your name' }) as HTMLInputElement;
+  const title = h('input', { class: 'input', type: 'text', placeholder: 'The title of your book', autocapitalize: 'words', autocomplete: 'off', enterkeyhint: 'next' }) as HTMLInputElement;
+  const author = h('input', { class: 'input', type: 'text', placeholder: 'Your name', autocapitalize: 'words', autocomplete: 'name', enterkeyhint: 'done' }) as HTMLInputElement;
   author.value = (await repo.kvGet<string>('lastAuthor')) || '';
   let chosen = 'classic';
   const grid = h('div', { class: 'tpl-pick' });

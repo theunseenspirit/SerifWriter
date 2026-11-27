@@ -10,7 +10,7 @@ import { Editor } from './editor.ts';
 import { Sidebar } from './sidebar.ts';
 import { Preview } from './preview.ts';
 import { KINDS, defaultContent, makeSection, plainTitle, sectionTitle } from '../model/defaults.ts';
-import { effectiveSettings, pageSize, indentsParagraphs, setBookSetting } from '../templates/index.ts';
+import { effectiveSettings, pageSize, indentsParagraphs, keepsLineBreaks, setBookSetting } from '../templates/index.ts';
 import { debounce, uid, formatRelative } from '../util.ts';
 import { splitFrontMatter, withFrontMatter } from '../md/frontmatter.ts';
 import { isPhone, onPhoneChange } from './viewport.ts';
@@ -101,7 +101,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
       requestAnimationFrame(() => { editor.goToLine(line, !isPhone()); preview.follow(id, line); });
     },
     onReorder: (ids) => { session.reorder(ids); renderSidebar(); book.updateSections(session.project, session.sections, [], currentId || undefined); },
-    onAdd: (kind, after) => void addSection(kind, after),
+    onAdd: (kind, after) => { if (isPhone()) { closeDrawer(); showPane('write'); } void addSection(kind, after); },
     onRename: (id) => void renameSection(id),
     onDuplicate: (id) => void duplicateSection(id),
     onDelete: (id) => void deleteSection(id),
@@ -148,9 +148,9 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   const focusBtn = iconButton('focus', 'Focus mode (⌘⇧F)', () => toggleFocus(), 'pj-focus');
   const back = h('a', { class: 'btn icon pj-back', href: '#/', title: 'Library', 'aria-label': 'Back to library' }, icon('back'));
 
-  // Phone: Write | Pages, and everything else in one menu.
-  const writeTab = h('button', { class: 'pj-seg-btn', type: 'button', 'aria-pressed': 'true' }, 'Write');
-  const pagesTab = h('button', { class: 'pj-seg-btn', type: 'button', 'aria-pressed': 'false' }, 'Pages');
+  // Phone: Write | Pages as an icon switch, and everything else in one menu.
+  const writeTab = h('button', { class: 'pj-seg-btn', type: 'button', 'aria-pressed': 'true', 'aria-label': 'Write', title: 'Write' }, icon('pen', 20));
+  const pagesTab = h('button', { class: 'pj-seg-btn', type: 'button', 'aria-pressed': 'false', 'aria-label': 'Pages', title: 'Pages' }, icon('pages', 20));
   writeTab.addEventListener('click', () => showPane('write'));
   pagesTab.addEventListener('click', () => showPane('pages'));
   const seg = h('div', { class: 'pj-seg', role: 'group', 'aria-label': 'Show' }, writeTab, pagesTab);
@@ -171,7 +171,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
       { label: 'Writing stats', icon: 'chart', onClick: () => void openStats() },
       { separator: true, label: '' },
       { label: 'Indent new paragraphs', checked: indentsParagraphs(s), disabled: s.type.paragraphStyle === 'block', onClick: () => paragraphSetting('type.autoIndent', !indentsParagraphs(s)) },
-      { label: 'Return starts a new line', checked: !!s.type.lineBreaks, onClick: () => paragraphSetting('type.lineBreaks', !s.type.lineBreaks) },
+      { label: 'Return starts a new line', checked: keepsLineBreaks(s), onClick: () => paragraphSetting('type.lineBreaks', !keepsLineBreaks(s)) },
       { separator: true, label: '' },
       { label: 'Design', icon: 'design', onClick: () => void openDesign() },
       { label: 'History', icon: 'history', onClick: () => void openHistory() },
@@ -185,7 +185,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   const topbar = h('header', { class: 'pj-bar' },
     back, toggleSidebar, titleBtn, saveState, mirrorWarn,
     h('div', { class: 'pj-spacer' }),
-    findBtn, statsBtn, designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview, seg, moreBtn);
+    findBtn, statsBtn, h('span', { class: 'pj-sep' }), designBtn, historyBtn, exportBtn, readBtn, h('span', { class: 'pj-sep' }), focusBtn, togglePreview, seg, moreBtn);
 
   const resizer = h('div', { class: 'pj-resizer', role: 'separator', 'aria-orientation': 'vertical', title: 'Drag to resize' });
   const statusbar = h('button', { class: 'pj-status', type: 'button', title: 'Writing stats' });
@@ -392,7 +392,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     if (id === currentId) editor.load(s);
     renderSidebar();
     book.updateSections(session.project, session.sections, [id], id);
-    editor.focus();
+    if (fresh || !isPhone()) editor.focus(); // a new chapter is for writing; a rename on a phone keeps the keyboard down
   }
 
   async function duplicateSection(id: string): Promise<void> {
@@ -506,9 +506,46 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   function toggleDrawer(open = !view.classList.contains('sb-open')): void {
     view.classList.toggle('sb-open', open);
     toggleSidebar.classList.toggle('on', open);
-    if (open) { editor.ta.blur(); (sidebar.el.querySelector('.sb-item.on') as HTMLElement | null)?.scrollIntoView({ block: 'nearest' }); }
+    toggleSidebar.setAttribute('aria-expanded', String(open));
+    // While the drawer is open the rest is out of reach, for VoiceOver too.
+    for (const el of [topbar, editorCol, preview.el]) el.inert = open;
+    if (open) {
+      editor.ta.blur();
+      const on = sidebar.el.querySelector('.sb-item.on') as HTMLElement | null;
+      on?.scrollIntoView({ block: 'nearest' });
+      on?.focus({ preventScroll: true });
+    } else sidebar.el.style.transform = '';
   }
   function closeDrawer(): void { if (view.classList.contains('sb-open')) toggleDrawer(false); }
+
+  // Phone: drag the drawer back to the left to close it.
+  let drag: { x: number; y: number; dx: number; on: boolean } | null = null;
+  sidebar.el.addEventListener('pointerdown', (e) => {
+    if (!isPhone() || !view.classList.contains('sb-open') || e.pointerType === 'mouse') return;
+    drag = { x: e.clientX, y: e.clientY, dx: 0, on: false };
+  });
+  sidebar.el.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const dx = Math.min(0, e.clientX - drag.x);
+    if (!drag.on) {
+      if (Math.abs(e.clientY - drag.y) > 12) { drag = null; return; } // scrolling the list
+      if (dx > -12) return;
+      drag.on = true;
+      sidebar.el.classList.add('dragging');
+    }
+    drag.dx = dx;
+    sidebar.el.style.transform = `translateX(${dx}px)`;
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    const close = drag.on && drag.dx < -70;
+    sidebar.el.classList.remove('dragging');
+    sidebar.el.style.transform = '';
+    drag = null;
+    if (close) closeDrawer();
+  };
+  sidebar.el.addEventListener('pointerup', endDrag);
+  sidebar.el.addEventListener('pointercancel', endDrag);
 
   // Phone: one pane at a time.
   function showPane(which: 'write' | 'pages'): void {
@@ -521,9 +558,16 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     flushEditor();
     previewSync.flush(); // typeset what was just written
     preview.apply();
-    // Open the pages where you are writing.
+    // Open the pages where you are writing, and stay there once what was just written is typeset
+    // (a chapter that grew or shrank moves every page after it).
     const at = currentId;
-    if (at) requestAnimationFrame(() => preview.reveal(at, editor.caretLine()));
+    if (!at) return;
+    const line = editor.caretLine();
+    const shownAt = performance.now();
+    requestAnimationFrame(() => preview.reveal(at, line));
+    void book.idle().then(() => {
+      if (view.classList.contains('pane-pages') && currentId === at && preview.touchedAt < shownAt) preview.reveal(at, line);
+    });
   }
 
   function toggleFocus(force?: boolean): void {

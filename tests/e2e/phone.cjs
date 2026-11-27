@@ -17,14 +17,30 @@ module.exports = async function phoneChecks(URL, check) {
   check('phone: the top bar fits the screen, with room for the title', bar.fits && bar.title > 100, JSON.stringify(bar));
   check('phone: opens on the writing pane with writing keys, pages out of sight', await shown('.editor-ta') && await shown('.pj-keys') && !(await shown('.preview')) && !(await shown('.pj-design')));
 
-  await page.locator('.pj-seg-btn', { hasText: 'Pages' }).tap();
+  const seg = await page.evaluate(() => Array.from(document.querySelectorAll('.pj-seg-btn')).map((b) => ({ label: b.getAttribute('aria-label'), text: b.textContent.trim(), icon: !!b.querySelector('svg') })));
+  check('phone: Write and Pages are an icon switch, labelled for VoiceOver', JSON.stringify(seg) === '[{"label":"Write","text":"","icon":true},{"label":"Pages","text":"","icon":true}]', JSON.stringify(seg));
+  const small = await page.evaluate(() => Array.from(document.querySelectorAll('.pj-bar button, .pj-bar a, .pj-key')).filter((b) => b.offsetParent && b.getBoundingClientRect().height < 34).map((b) => b.getAttribute('aria-label') || b.textContent));
+  check('phone: top bar and writing keys are finger-sized', small.length === 0, small.join(', '));
+  await page.getByRole('button', { name: 'Pages', exact: true }).tap();
   await page.waitForTimeout(500);
   check('phone: Pages shows the typeset book in place of the editor', await shown('.preview .pv-frame') && !(await shown('.editor-ta')));
-  await page.locator('.pj-seg-btn', { hasText: 'Write' }).tap();
+  await page.getByRole('button', { name: 'Write', exact: true }).tap();
 
   await page.locator('.pj-contents').tap();
   await page.waitForTimeout(450);
   check('phone: the contents slide in as a drawer', await shown('.sidebar .sb-item'));
+  check('phone: behind the open drawer the page is out of reach (inert)', await page.evaluate(() => document.querySelector('.pj-editor').inert && document.querySelector('.pj-bar').inert));
+  // Drag it back to the left to close it, then open it again.
+  const sb = await page.locator('.sidebar').boundingBox();
+  await page.evaluate(({ x, y }) => {
+    const el = document.querySelector('.sidebar');
+    const ev = (type, cx) => el.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerType: 'touch', pointerId: 7, clientX: cx, clientY: y }));
+    ev('pointerdown', x); for (let i = 1; i <= 6; i++) ev('pointermove', x - i * 25); ev('pointerup', x - 150);
+  }, { x: sb.x + sb.width - 40, y: sb.y + 300 });
+  await page.waitForTimeout(400);
+  check('phone: swiping the drawer left closes it', !(await page.evaluate(() => document.querySelector('.project').classList.contains('sb-open'))) && !(await page.evaluate(() => document.querySelector('.pj-editor').inert)));
+  await page.locator('.pj-contents').tap();
+  await page.waitForTimeout(450);
   await page.locator('.sb-item', { hasText: 'Notes from the Side' }).tap();
   await page.waitForTimeout(450);
   const picked = await page.evaluate(() => ({ open: document.querySelector('.project').classList.contains('sb-open'), text: document.querySelector('.editor-ta').value.slice(0, 200) }));
@@ -50,7 +66,7 @@ module.exports = async function phoneChecks(URL, check) {
   await page.locator('.pj-more').tap();
   const ticks = await page.locator('.menu-item').evaluateAll((els) => els.filter((e) => /Indent new paragraphs|Return starts/.test(e.textContent)).map((e) => e.querySelector('.menu-ico-space')?.textContent));
   await page.keyboard.press('Escape');
-  check('phone: ⋯ has one-tap toggles for paragraph indents and line breaks, ticked when on', JSON.stringify(quick) === '{"autoIndent":false,"lineBreaks":true}' && ticks.join() === ',✓', `${JSON.stringify(quick)} ${ticks.join()}`);
+  check('phone: ⋯ has one-tap toggles for paragraph indents and line breaks, ticked when on', JSON.stringify(quick) === '{"autoIndent":false,"lineBreaks":false}' && ticks.join() === ',', `${JSON.stringify(quick)} ${ticks.join()}`);
 
   await page.locator('.pj-more').tap();
   await page.locator('.menu-item', { hasText: 'Design' }).tap();
@@ -59,9 +75,24 @@ module.exports = async function phoneChecks(URL, check) {
   check('phone: Design opens as a sheet over the lower screen, the pages above it', await shown('.preview .pv-frame') && sheet.top > 200 && Math.abs(sheet.bottom - sheet.h) < 2, JSON.stringify(sheet));
   await page.locator('.drawer-head .btn').tap();
 
+  await page.locator('.pj-more').tap();
+  await page.locator('.menu-item', { hasText: 'Export' }).tap();
+  await page.waitForTimeout(400);
+  const exp = await page.evaluate(() => { const d = document.querySelector('dialog.dlg').getBoundingClientRect(); const b = document.querySelector('.exp-item .btn').getBoundingClientRect(); return { left: d.left, width: d.width, bottom: d.bottom, h: innerHeight, btn: Math.round(b.width), label: document.querySelector('.exp-item .btn').textContent }; });
+  check('phone: dialogs open as full-width sheets from the bottom, with full-width actions', exp.left === 0 && exp.width === 428 && Math.abs(exp.bottom - exp.h) < 2 && exp.btn > 300 && exp.label === 'Save PDF…', JSON.stringify(exp));
+  const head = await page.locator('dialog .dlg-head').boundingBox();
+  await page.evaluate(({ x, y }) => {
+    const el = document.querySelector('dialog .dlg-head');
+    const ev = (type, cy) => el.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerType: 'touch', pointerId: 8, clientX: x, clientY: cy }));
+    ev('pointerdown', y); for (let i = 1; i <= 6; i++) ev('pointermove', y + i * 30); ev('pointerup', y + 180);
+  }, { x: head.x + 120, y: head.y + 10 });
+  await page.waitForTimeout(300);
+  check('phone: dragging a sheet down dismisses it', await page.locator('dialog[open]').count() === 0);
+
   await page.goto(URL + '#/');
   await page.waitForSelector('.book-card');
   check('phone: Safari on an iPhone explains Add to Home Screen', await shown('.install-tip'));
+  check('phone: launch screens are linked for the Home Screen app', await page.evaluate(() => document.querySelectorAll('link[rel="apple-touch-startup-image"]').length) === 4);
   check('phone: book options are visible without hovering', (await page.locator('.card-more').first().evaluate((b) => getComputedStyle(b).opacity)) === '1');
   check('phone: library fits the screen', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   check('phone: no uncaught page errors', errors.length === 0, errors.slice(0, 3).join(' / '));

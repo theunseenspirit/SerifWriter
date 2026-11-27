@@ -1,4 +1,5 @@
 import { h, icon } from './dom.ts';
+import { isPhone } from './viewport.ts';
 
 // Modal dialogs (native <dialog>: focus trap and Esc for free), popover menus and toasts.
 
@@ -17,9 +18,37 @@ export function modal(title: string, opts: { wide?: boolean; className?: string;
   dialog.addEventListener('close', () => { resolve(value); opts.onClose?.(); setTimeout(() => dialog.remove(), 0); });
   dialog.addEventListener('click', (e) => { if (e.target === dialog) close(); });
   closeBtn.addEventListener('click', () => close());
+  sheetDrag(dialog, dialog.querySelector('.dlg-head') as HTMLElement, () => close());
   document.body.appendChild(dialog);
   dialog.showModal();
   return { dialog, body, footer, close, result };
+}
+
+/** On a phone, dialogs and the Design panel are sheets from the bottom: drag one down by its top edge to dismiss it. */
+export function sheetDrag(dialog: HTMLElement, head: HTMLElement, dismiss: () => void): void {
+  let start: number | null = null;
+  let dy = 0;
+  head.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' || !isPhone() || (e.target as HTMLElement).closest('button')) return;
+    start = e.clientY;
+    dy = 0;
+    try { head.setPointerCapture(e.pointerId); } catch { /* no live pointer to capture */ }
+    dialog.classList.add('dragging');
+  });
+  head.addEventListener('pointermove', (e) => {
+    if (start === null) return;
+    dy = Math.max(0, e.clientY - start);
+    dialog.style.transform = `translateY(${dy}px)`;
+  });
+  const end = () => {
+    if (start === null) return;
+    start = null;
+    dialog.classList.remove('dragging');
+    if (dy > 90) dismiss();
+    else dialog.style.transform = '';
+  };
+  head.addEventListener('pointerup', end);
+  head.addEventListener('pointercancel', end);
 }
 
 export function confirmDialog(title: string, message: string, opts: { ok?: string; danger?: boolean; cancel?: string } = {}): Promise<boolean> {
@@ -38,7 +67,7 @@ export function promptDialog(title: string, label: string, value = '', opts: { o
   const m = modal(title);
   const input = opts.multiline
     ? h('textarea', { class: 'input', rows: 4, placeholder: opts.placeholder || '' }) as HTMLTextAreaElement
-    : h('input', { class: 'input', type: 'text', placeholder: opts.placeholder || '' }) as HTMLInputElement;
+    : h('input', { class: 'input', type: 'text', placeholder: opts.placeholder || '', autocapitalize: 'words', enterkeyhint: 'done', autocomplete: 'off' }) as HTMLInputElement;
   input.value = value;
   const form = h('form', { class: 'dlg-form' }, h('label', { class: 'field' }, h('span', null, label), input));
   form.addEventListener('submit', (e) => { e.preventDefault(); m.close(input.value); });

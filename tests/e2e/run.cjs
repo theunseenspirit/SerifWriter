@@ -127,13 +127,14 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   const brBefore = await runOn();
   await page.getByRole('button', { name: 'Design' }).click();
   await page.locator('.ds-toggle', { hasText: 'Indent new paragraphs' }).locator('input').uncheck();
-  await page.locator('.ds-toggle', { hasText: 'Return starts a new line' }).locator('input').check();
+  await page.locator('.ds-toggle', { hasText: 'Return starts a new line' }).locator('input').uncheck();
   await page.waitForTimeout(900);
   await idle(page);
   const indentAfter = await indentOf();
   check('“Indent new paragraphs” off sets every paragraph flush left', indentBefore && indentBefore !== '0px' && indentAfter === '0px', `${indentBefore} → ${indentAfter}`);
-  check('“Return starts a new line” keeps a single Return as a new line', !brBefore && (await runOn()));
-  check('and the settings are kept with the book', JSON.stringify(await page.evaluate(() => window.serifwriter.project().session.project.overrides.type)) === '{"autoIndent":false,"lineBreaks":true}');
+  check('a single Return starts a new line on the page, by default', brBefore);
+  check('turning “Return starts a new line” off runs the lines together, as in Markdown', !(await runOn()));
+  check('and the settings are kept with the book', JSON.stringify(await page.evaluate(() => window.serifwriter.project().session.project.overrides.type)) === '{"autoIndent":false,"lineBreaks":false}');
   await page.locator('.ds-toggle', { hasText: 'Space between paragraphs' }).locator('input').check();
   check('space between paragraphs greys out the indent toggle', await page.locator('.ds-toggle', { hasText: 'Indent new paragraphs' }).locator('input').isDisabled());
   await page.keyboard.press('Escape');
@@ -229,6 +230,13 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await idle(page);
   const toc = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root .toc-entry .toc-title')).map((e) => e.textContent));
   check('contents page lists the new chapter', toc.includes('A Third Chapter'), toc.join(' | '));
+  // The opening paragraph of each chapter: a drop cap for running prose, none for a single short line.
+  const drops = await page.evaluate(() => Object.fromEntries(['The First Light', 'A Third Chapter'].map((t) => {
+    const pg = Array.from(document.querySelectorAll('.pv-root .page')).find((x) => x.querySelector('.op-title')?.textContent.toUpperCase() === t.toUpperCase());
+    const p = pg?.querySelector('.pg-content p');
+    return [t, p ? `${p.classList.contains('dropcap')} ${p.textContent.slice(0, 20)}` : 'none'];
+  })));
+  check('a drop cap opens running prose, not a single short line', drops['The First Light'].startsWith('true') && drops['A Third Chapter'].startsWith('false'), JSON.stringify(drops));
   const tocX = await page.evaluate(() => { const x = (sel) => document.querySelector(`.pv-root ${sel} .toc-title`)?.getBoundingClientRect().left ?? 0; return { chapter: x('.toc-chapter'), section: x('.toc-sub') }; });
   check('contents page indents sections from their chapter', tocX.section > tocX.chapter + 5, JSON.stringify(tocX));
   await page.locator('.sb-item', { hasText: 'A Third Chapter' }).click({ button: 'right' });

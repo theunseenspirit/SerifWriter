@@ -84,13 +84,19 @@ function opener(kind: 'chapter' | 'section' | 'about' | 'toc', titleHtml: string
   return el;
 }
 
-/** Wraps the first N words of a paragraph in a small-caps lead-in span. */
+/** Wraps the first N words of a paragraph in a small-caps lead-in span (never past its first line break). */
 function leadIn(p: HTMLElement, words: number): void {
-  const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+  const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
   let count = 0;
   let started = false;
   const nodes: Text[] = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+  let seenText = false;
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    if (n.nodeType === Node.ELEMENT_NODE) { if ((n as Element).tagName === 'BR' && seenText) break; continue; }
+    if ((n as Text).data.trim()) seenText = true;
+    nodes.push(n as Text);
+  }
   for (const t of nodes) {
     if (count >= words) break;
     if (t.parentElement?.closest('.fn-ref, code')) continue;
@@ -271,8 +277,10 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
     }
     if (isPlainParagraph(el)) {
       if (wantDrop) {
-        // Small-cap first words only ever accompany a drop cap.
-        if (s.dropCap.enabled && /^[\s“"‘'(\[]*[\p{L}\p{N}]/u.test(el.textContent || '')) {
+        // Small-cap first words only ever accompany a drop cap, and a drop cap only running prose:
+        // not text set line by line (a deliberate line break), nor an opening of a line or less.
+        const prose = !el.querySelector('br') && (el.textContent || '').trim().length > 80;
+        if (s.dropCap.enabled && prose && /^[\s“"‘'(\[]*[\p{L}\p{N}]/u.test(el.textContent || '')) {
           el.classList.add('dropcap');
           if (s.leadIn.mode === 'words') leadIn(el, s.leadIn.words);
           else if (s.leadIn.mode === 'line') el.classList.add('leadin-line');
@@ -372,26 +380,26 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
     }
     case 'copyright': {
       const c = h('div', 'fixed-content copyright-page');
-      c.appendChild(renderMarkdown(fillTokens(fm.body, ctx.meta, s), { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks }));
+      c.appendChild(renderMarkdown(fillTokens(fm.body, ctx.meta, s), { lang, lineOffset, cite: ctx.cite, breaks: s.type.lineBreaks !== false }));
       return { ...base, fixed: c };
     }
     case 'dedication': {
       const c = h('div', 'fixed-content dedication-page');
       const body = h('div', 'ded-body');
-      body.appendChild(renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks }));
+      body.appendChild(renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: s.type.lineBreaks !== false }));
       c.appendChild(body);
       return { ...base, fixed: c };
     }
     case 'epigraph': {
       const c = h('div', 'fixed-content epigraph-page');
-      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: s.type.lineBreaks !== false });
       epigraph(frag);
       c.appendChild(frag);
       return { ...base, fixed: c };
     }
     case 'part': {
       const c = h('div', 'fixed-content part-page');
-      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: s.type.lineBreaks !== false });
       let titleHtml = escapeHtml(fmString(fm.data.title) || sec.title);
       const firstHeading = frag.firstElementChild;
       if (firstHeading && /^H[1-6]$/.test(firstHeading.tagName)) { titleHtml = firstHeading.innerHTML; firstHeading.remove(); }
@@ -440,7 +448,7 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
     }
     default: {
       const numbered = sec.kind === 'chapter';
-      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: s.type.lineBreaks !== false });
       const flow = processFlow(frag, ctx, sec, set, numbered);
       const titleHtml = fm.data.title ? renderInline(fmString(fm.data.title), lang) : flow.leadTitle ?? escapeHtml(sec.title || 'Untitled');
       const sub = fm.data.subtitle ? renderInline(fmString(fm.data.subtitle), lang) : flow.leadSub;

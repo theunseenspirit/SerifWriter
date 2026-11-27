@@ -9,7 +9,7 @@ export function openSymbolPicker(ctx: ProjectCtx): void {
   const { editor } = ctx;
   const sel = { a: editor.ta.selectionStart, b: editor.ta.selectionEnd };
   const m = modal('Insert symbol', { wide: true, className: 'find-dlg' });
-  const q = h('input', { class: 'input', type: 'text', placeholder: 'Search: and, necessarily, forall, entails…', spellcheck: 'false' }) as HTMLInputElement;
+  const q = h('input', { class: 'input', type: 'search', placeholder: 'Search: and, necessarily, forall, entails…', spellcheck: 'false', autocapitalize: 'none', autocorrect: 'off', autocomplete: 'off', enterkeyhint: 'search' }) as HTMLInputElement;
   const grid = h('div', { class: 'sym-grid' });
   const seen = new Set<string>();
   const items = SYMBOLS.filter(([, c]) => !seen.has(c) && seen.add(c));

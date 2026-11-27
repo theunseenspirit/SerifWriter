@@ -12,7 +12,7 @@ export async function openFind(ctx: ProjectCtx): Promise<void> {
   await ctx.flush();
   const { session, editor } = ctx;
   const m = modal('Find & replace', { wide: true, className: 'find-dlg' });
-  const input = (ph: string) => h('input', { class: 'input', type: 'text', placeholder: ph, spellcheck: 'false' }) as HTMLInputElement;
+  const input = (ph: string) => h('input', { class: 'input', type: 'text', placeholder: ph, spellcheck: 'false', autocapitalize: 'none', autocorrect: 'off', autocomplete: 'off', enterkeyhint: 'search' }) as HTMLInputElement;
   const find = input('Find in the whole book');
   const repl = input('Replace with');
   const opt = (label: string) => { const c = h('input', { type: 'checkbox' }) as HTMLInputElement; return [c, h('label', { class: 'ds-toggle' }, c, h('span', null, label))] as const; };
