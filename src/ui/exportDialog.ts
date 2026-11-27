@@ -4,6 +4,10 @@ import { modal, toast } from './dialogs.ts';
 import { plainTitle } from '../model/defaults.ts';
 import { downloadBlob, safeFilename } from '../util.ts';
 import { isIOS } from './viewport.ts';
+import { effectiveSettings } from '../templates/index.ts';
+
+/** Amazon KDP's minimum inside (gutter) margin for a paperback of so many pages, in inches. */
+const kdpGutter = (pages: number) => (pages <= 150 ? 0.375 : pages <= 300 ? 0.5 : pages <= 500 ? 0.625 : pages <= 700 ? 0.75 : 0.875);
 
 // Export: print-ready PDF, EPUB, DOCX, HTML, Markdown, and a backup of this book.
 
@@ -40,12 +44,22 @@ export function openExport(ctx: ProjectCtx, _anchor?: HTMLElement): void {
     await printBook(ctx.book, { bleed: bleed.value, whitePaper: white.value, blanks: blanks.value, title: name });
   }) });
 
+  // A print file a printer would reject is better caught here than at upload.
+  const sp = effectiveSettings(project).page;
+  const pages = ctx.book.pageRefs.length;
+  const gutter = kdpGutter(pages);
+  const narrow = [
+    sp.twoSided && sp.margins.inside < gutter ? `the inside margin (${sp.margins.inside} in) is narrower than the ${gutter} in Amazon KDP asks of a ${pages}-page book` : '',
+    Math.min(sp.margins.outside, sp.margins.top, sp.margins.bottom) < 0.375 ? 'an outside, top or bottom margin is under 0.375 in, KDP’s minimum for a book printed with bleed (0.25 in without)' : '',
+  ].filter(Boolean);
+  const marginWarn = narrow.length ? h('p', { class: 'exp-warn' }, `For print: ${narrow.join('; ')}. Widen it in Design ▸ Page ▸ Margins.`) : null;
+
   m.body.append(
     h('div', { class: 'exp-list' },
       item('PDF', '#7A1E1E', 'Print-ready PDF',
         isIOS() ? 'Exactly the pages you see, at the trim size, with the fonts embedded. In the print sheet, tap the Share button, then Save to Files (or AirDrop it).'
           : `Exactly the pages you see, at the trim size, with the fonts embedded. In the print dialog choose “Save as PDF”${isChrome ? '' : ' (Chrome gives the most faithful result)'}, and leave margins at “Default” and scale at 100%.`,
-        pdfBtn, h('div', { class: 'exp-opts' }, bleed.el, white.el, blanks.el)),
+        pdfBtn, h('div', null, marginWarn, h('div', { class: 'exp-opts' }, bleed.el, white.el, blanks.el))),
       item('EPUB', '#2E4A33', 'EPUB e-book', 'Reflowable EPUB 3 for Apple Books, Kobo and other readers, with your chapters, contents, footnotes and template styling.',
         button(dl, { onClick: () => void run('EPUB', async () => { const { exportEpub } = await import('../export/epub.ts'); downloadBlob(await exportEpub(project, ctx.session.sections, { embedFonts: fonts.value }), `${name}.epub`); }) }),
         h('div', { class: 'exp-opts' }, fonts.el)),

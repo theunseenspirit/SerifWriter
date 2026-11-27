@@ -84,6 +84,7 @@ async function inlineRuns(node: Node, f: Fmt, ctx: Ctx): Promise<string> {
     if (n.nodeType !== Node.ELEMENT_NODE) continue;
     const el = n as HTMLElement;
     const tag = el.tagName;
+    if (el.classList.contains('arg-label')) { out += run((el.textContent || '').trim(), f) + '<w:r><w:tab/></w:r>'; continue; }
     if (el.classList.contains('fn-ref')) {
       const note = ctx.notes.get(el.dataset.fn || '');
       if (note) {
@@ -144,6 +145,7 @@ async function blockXml(root: HTMLElement, ctx: Ctx, defaultStyle = 'Normal', li
       let style = defaultStyle;
       if (defaultStyle === 'Normal' && (c.contains('first') || c.contains('dropcap') || c.contains('after-break') || c.contains('noindent'))) style = 'FirstParagraph';
       if (c.contains('attrib')) style = 'Attribution';
+      if (c.contains('arg-line')) style = 'Argument';
       if (tag === 'FIGCAPTION') style = 'Caption';
       const numPr = list ? `<w:numPr><w:ilvl w:val="${list.level}"/><w:numId w:val="${list.numId}"/></w:numPr>` : '';
       if (c.contains('dropcap') && ctx.book.settings.dropCap.enabled) {
@@ -159,7 +161,7 @@ async function blockXml(root: HTMLElement, ctx: Ctx, defaultStyle = 'Normal', li
         }
       }
       const lvl = /\bind(\d)\b/.exec(el.className)?.[1];
-      out += para(style, await inlineRuns(el, {}, ctx), numPr + (lvl ? `<w:ind w:left="${+lvl * 480}" w:firstLine="0"/><w:jc w:val="left"/>` : ''));
+      out += para(style, await inlineRuns(el, {}, ctx), numPr + (c.contains('keep-next') ? '<w:keepNext/>' : '') + (lvl ? `<w:ind w:left="${+lvl * 480}" w:firstLine="0"/><w:jc w:val="left"/>` : ''));
       continue;
     }
     if (/^H[1-6]$/.test(tag)) {
@@ -249,6 +251,7 @@ ${st('PartTitle', 'Part Title', `<w:pPr><w:jc w:val="center"/><w:ind w:firstLine
 ${st('Heading2', 'heading 2', `<w:pPr><w:keepNext/><w:jc w:val="center"/><w:ind w:firstLine="0"/><w:spacing w:before="${line}" w:after="${line / 2 | 0}"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr>${caps}<w:sz w:val="${manuscript ? sz : sz * 0.9 | 0}"/></w:rPr>`, 'paragraph', 'Normal', 'FirstParagraph')}
 ${st('Heading3', 'heading 3', `<w:pPr><w:keepNext/><w:jc w:val="center"/><w:ind w:firstLine="0"/><w:spacing w:before="${line}" w:after="${line / 2 | 0}"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:i/></w:rPr>`, 'paragraph', 'Normal', 'FirstParagraph')}
 ${st('Heading4', 'heading 4', `<w:pPr><w:keepNext/><w:ind w:firstLine="0"/><w:spacing w:before="${line / 2 | 0}"/><w:outlineLvl w:val="3"/></w:pPr><w:rPr><w:smallCaps/></w:rPr>`, 'paragraph', 'Normal', 'FirstParagraph')}
+${st('Argument', 'Argument', `<w:pPr><w:ind w:left="${Math.round(2.6 * size * 20)}" w:hanging="${Math.round(2.6 * size * 20)}"/><w:jc w:val="left"/><w:spacing w:before="40"/></w:pPr>`)}
 ${st('Quote', 'Quote', '<w:pPr><w:ind w:left="720" w:right="720" w:firstLine="0"/><w:spacing w:before="120" w:after="120"/></w:pPr>')}
 ${st('Attribution', 'Attribution', '<w:pPr><w:jc w:val="right"/><w:ind w:firstLine="0"/></w:pPr>')}
 ${st('SceneBreak', 'Scene Break', `<w:pPr><w:jc w:val="center"/><w:ind w:firstLine="0"/><w:spacing w:before="120" w:after="120"/><w:keepNext/></w:pPr>${manuscript ? '' : `<w:rPr><w:color w:val="${acc}"/></w:rPr>`}`, 'paragraph', 'Normal', 'FirstParagraph')}
