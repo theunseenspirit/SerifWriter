@@ -14,6 +14,9 @@ import { effectiveSettings, pageSize, indentsParagraphs, keepsLineBreaks, setBoo
 import { debounce, uid, formatRelative } from '../util.ts';
 import { splitFrontMatter, withFrontMatter } from '../md/frontmatter.ts';
 import { isPhone, onPhoneChange } from './viewport.ts';
+import { sync } from '../sync/engine.ts';
+import { bookHash, toSyncBook } from '../sync/merge.ts';
+import { syncLabel, openSyncSetup } from './sync.ts';
 
 // The writing room: sidebar | editor | live preview. On a phone: one pane at a
 // time (Write or Pages), the contents in a drawer, and a row of writing keys
@@ -115,10 +118,12 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     saveState.className = `save-state ${st}`;
     saveState.replaceChildren(st === 'saved' ? icon('check', 14) : h('span', { class: 'dot' }), h('span', null, text));
     const mir = mirror.status === 'ok' ? ` · mirrored to “${mirror.folderName}”${mirror.lastWrite ? ` ${formatRelative(mirror.lastWrite)}` : ''}` : '';
-    saveState.title = st === 'error' ? `Saving to this browser failed: ${session.lastError}. Your text is kept in a local journal and will be retried.` : `Saved in this browser${mir}`;
+    const syn = sync.configured ? ` · ${syncLabel()}` : '';
+    saveState.title = st === 'error' ? `Saving to this browser failed: ${session.lastError}. Your text is kept in a local journal and will be retried.` : `Saved in this browser${mir}${syn}`;
   };
   const offSave = session.onState(paintSave);
   const offMirror = mirror.onChange(() => paintSave(session.state));
+  const offSync = sync.onChange(() => paintSave(session.state));
   paintSave('saved');
 
   const titleBtn = h('button', { class: 'pj-title', type: 'button', title: 'Book details' }, plainTitle(project.meta));
@@ -169,6 +174,8 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
       { label: 'Insert a symbol', icon: 'keyboard', onClick: () => void openSymbols() },
       { label: 'Insert a citation', icon: 'book', onClick: () => void openCite() },
       { label: 'Writing stats', icon: 'chart', onClick: () => void openStats() },
+      sync.configured ? { label: 'Sync now', icon: 'sync', hint: sync.status === 'syncing' ? 'syncing…' : '', onClick: () => void sync.now('all') }
+        : { label: 'Sync your devices…', icon: 'sync', onClick: () => openSyncSetup() },
       { separator: true, label: '' },
       { label: 'Indent new paragraphs', checked: indentsParagraphs(s), disabled: s.type.paragraphStyle === 'block', onClick: () => paragraphSetting('type.autoIndent', !indentsParagraphs(s)) },
       { label: 'Return starts a new line', checked: keepsLineBreaks(s), onClick: () => paragraphSetting('type.lineBreaks', !keepsLineBreaks(s)) },
@@ -644,6 +651,34 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   };
   currentCtx = ctx;
 
+  // Sync reads the open book from the editor's session and takes another device's changes in place,
+  // unless you typed while it was fetching (then it tries again on the next round).
+  sync.setLive({
+    id: project.id,
+    read: async () => { await flush(); return { project: session.project, sections: session.sections }; },
+    apply: async (merged, expect) => {
+      await flush();
+      if (bookHash(toSyncBook(session.project, session.sections)) !== expect) return false;
+      const design = () => JSON.stringify([session.project.templateId, session.project.overrides, session.project.customCss]);
+      const before = design();
+      const replaced = merged.sections.some((r) => session.byId.has(r.id) && session.byId.get(r.id)!.content !== r.content) || session.sections.some((s) => !merged.order.includes(s.id));
+      if (replaced) await createSnapshot(session.project, session.sections, { auto: false, label: 'Before syncing', reason: 'Before syncing' }).catch(() => undefined);
+      const changed = await session.applySync(merged);
+      if (!currentId || !session.byId.has(currentId)) currentId = session.sections.find((s) => s.kind === 'chapter')?.id ?? session.sections[0]?.id ?? null;
+      if (currentId && (changed.includes(currentId) || editor.sectionId !== currentId)) editor.load(session.byId.get(currentId)!);
+      titleBtn.textContent = plainTitle(session.project.meta);
+      document.title = `${plainTitle(session.project.meta)} — SerifWriter`;
+      renderSidebar();
+      paintStatus();
+      if (design() !== before) await ctx.relayout();
+      else {
+        book.metaChanged(session.project);
+        book.updateSections(session.project, session.sections, changed.filter((id) => session.byId.has(id)), currentId || undefined);
+      }
+      return true;
+    },
+  });
+
   // Turning a phone sideways or resizing a window can switch layouts mid-session.
   const applyPhone = (phone: boolean) => {
     sidebar.foldOnReselect = !phone;
@@ -673,7 +708,9 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
       window.removeEventListener('pagehide', onHide);
       document.removeEventListener('visibilitychange', onVis);
       document.removeEventListener('keydown', onDocKey);
-      offSave(); offMirror(); offMirror2(); offPhone();
+      offSave(); offMirror(); offMirror2(); offPhone(); offSync();
+      sync.setLive(null);
+      void sync.now('all');
       preview.destroy();
       book.destroy();
       for (const u of assetUrls.values()) URL.revokeObjectURL(u);

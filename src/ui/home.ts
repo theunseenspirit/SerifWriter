@@ -11,6 +11,8 @@ import { createSnapshot } from '../storage/snapshots.ts';
 import { projectFromSingleMarkdown } from '../storage/serialize.ts';
 import { countWords } from '../model/words.ts';
 import { isIOS, isStandalone } from './viewport.ts';
+import { sync } from '../sync/engine.ts';
+import { syncChip } from './sync.ts';
 
 // The library: every book as a cover. Create, rename, duplicate, delete
 // (to a trash you can restore from), import and back up.
@@ -156,6 +158,7 @@ async function purge(p: Project): Promise<void> {
   const ok = await confirmDialog('Delete forever?', `“${plainTitle(p.meta)}” and its version history will be permanently deleted from this browser${mirrored ? `, along with its folder “${p.mirror!.folder}” in your backup folder` : ''}. This cannot be undone.`, { ok: 'Delete forever', danger: true });
   if (!ok) return;
   if (mirrored) await mirror.removeFolder(p.mirror!.folder, p.id);
+  await sync.forget(p.id); // first, so no sync brings it back; the other devices move it to Recently Deleted
   await repo.purgeProject(p.id);
   await renderHome(root);
 }
@@ -331,7 +334,7 @@ export async function renderHome(container: HTMLElement): Promise<void> {
     await installTip(),
     h('header', { class: 'home-head' },
       h('div', { class: 'brand' }, h('div', { class: 'brand-name' }, 'SerifWriter'), h('div', { class: 'brand-sub' }, 'Your library')),
-      h('div', { class: 'home-actions' }, mirrorChip(), importBtn, backupBtn,
+      h('div', { class: 'home-actions' }, syncChip(), mirrorChip(), importBtn, backupBtn,
         button('New book', { icon: 'plus', class: 'primary', onClick: () => void newBookDialog() }))),
     h('section', { class: 'shelf' }, ...live.map((p) => card(p, counts.get(p.id) || 0)), newCard),
     deleted.length ? h('details', { class: 'trash' },
@@ -342,6 +345,8 @@ export async function renderHome(container: HTMLElement): Promise<void> {
         button('Restore', { icon: 'restore', class: 'small', onClick: async () => { p.deletedAt = null; await repo.saveProject(p); await renderHome(root); } }),
         button('Delete forever', { class: 'small danger', onClick: () => void purge(p) }))))) : null,
     h('footer', { class: 'home-foot' }, await storageLine(),
-      h('div', null, 'Private by design: no accounts, no servers. Your writing never leaves this device unless you export it.')));
+      h('div', null, sync.configured ? `Private by design: no accounts, no servers of ours. Your books sync only with your private repository, ${sync.repoName}.` : 'Private by design: no accounts, no servers. Your writing never leaves this device unless you export it or turn on sync.')));
   container.replaceChildren(main);
+  // Books another device changed appear as soon as a sync brings them.
+  sync.onBooksChanged = () => { if (document.body.classList.contains('route-home') && root.contains(main)) void renderHome(root); };
 }
