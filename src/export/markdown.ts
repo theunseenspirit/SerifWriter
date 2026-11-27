@@ -3,6 +3,8 @@ import { splitFrontMatter, withFrontMatter, type FMValue } from '../md/frontmatt
 import { sectionTitle } from '../model/defaults.ts';
 import * as repo from '../db/repo.ts';
 import { extFor } from './common.ts';
+import { effectiveSettings, keepsLineBreaks } from '../templates/index.ts';
+import { hardLineBreaks } from '../md/render.ts';
 
 // The whole book as one Markdown file with YAML front matter. If the book has
 // images, it becomes a .zip with book.md and an images/ folder.
@@ -16,9 +18,12 @@ export async function exportMarkdown(project: Project, sections: Section[]): Pro
   if (m.year) fm.year = m.year;
   if (m.language && m.language !== 'en') fm.language = m.language;
   const out: string[] = [];
+  const breaks = keepsLineBreaks(effectiveSettings(project));
   for (const s of sections) {
     if (s.kind === 'title' || s.kind === 'toc' || s.kind === 'index') continue;
-    const body = splitFrontMatter(s.content).body.trim();
+    const raw = splitFrontMatter(s.content).body.trim();
+    // Each Return is a new line in this book: say so in the Markdown, which would otherwise run them together.
+    const body = breaks && s.kind !== 'bibliography' ? hardLineBreaks(raw, m.language) : raw;
     if (s.kind === 'copyright' || s.kind === 'dedication' || s.kind === 'epigraph') {
       if (body) out.push(`<!-- ${s.kind} -->\n\n${body}`);
       continue;

@@ -3,6 +3,7 @@ import { splitFrontMatter, withFrontMatter, fmString, type FMValue } from '../md
 import { KINDS, emptyMeta, makeSection, metaFromFrontMatter, metaFromTitleContent, titleContentFromMeta, DEFAULT_COPYRIGHT, sectionTitle } from '../model/defaults.ts';
 import { safeFilename, uid } from '../util.ts';
 import { countWords } from '../model/words.ts';
+import { looksHardWrapped } from '../md/render.ts';
 
 // Plain-text representation of a book: one Markdown file per section with YAML
 // front matter (`type`, `title`), plus project.json for order and settings.
@@ -90,7 +91,8 @@ export function projectFromFiles(json: ProjectFile | null, files: Map<string, st
   if (!titleSec) sections.unshift(makeSection(id, 'title', undefined, titleContentFromMeta(meta)));
   const project: Project = {
     id, createdAt: json?.createdAt || now, updatedAt: json?.updatedAt || now, openedAt: now, deletedAt: null, meta,
-    order: sections.map((s) => s.id), templateId: json?.templateId || 'classic', overrides: json?.overrides || {},
+    order: sections.map((s) => s.id), templateId: json?.templateId || 'classic',
+    overrides: json?.overrides || (looksHardWrapped(sections.map((s) => s.content)) ? { type: { lineBreaks: false } } : {}),
     customCss: json?.customCss || '', lastSectionId: sections.find((s) => s.kind === 'chapter')?.id || sections[0]?.id || null,
     words: sections.reduce((n, s) => n + (s.kind === 'title' ? 0 : s.words), 0), ui: {}, goal: json?.goal, stats: json?.stats,
   };
@@ -138,7 +140,8 @@ export function projectFromSingleMarkdown(text: string, filename: string): { pro
   const now = Date.now();
   const project: Project = {
     id, createdAt: now, updatedAt: now, openedAt: now, deletedAt: null, meta, order: sections.map((s) => s.id), templateId: 'classic',
-    overrides: {}, customCss: '', lastSectionId: sections[3]?.id ?? null, words: sections.reduce((n, s) => n + s.words, 0), ui: {},
+    // Markdown wrapped at a fixed width means its line breaks are not new lines.
+    overrides: looksHardWrapped([fm.body]) ? { type: { lineBreaks: false } } : {}, customCss: '', lastSectionId: sections[3]?.id ?? null, words: sections.reduce((n, s) => n + s.words, 0), ui: {},
   };
   return { project, sections };
 }

@@ -56,8 +56,10 @@ Add it to the Home Screen *before* you write: books written in a Safari tab stay
 storage, separate from the Home Screen app's. Your writing stays on the phone — only the app is
 published.
 
-On the phone the writing room shows one pane at a time, **Write** or **Pages**, with the contents in
-a drawer (the sidebar button, top left) and everything else under ⋯. A row of keys above the
+On the phone the writing room shows one pane at a time — **Write** (the pen) or **Pages** (the
+page), switched top right — with the contents in a drawer (the sidebar button, top left; swipe it
+away to close) and everything else under ⋯. Dialogs slide up from the bottom, above the keyboard;
+drag one down to close it. A row of keys above the
 keyboard gives what a phone keyboard lacks: ⇥ and ⇤ to indent or outdent a line (Tab and ⇧Tab),
 bold, italic, a footnote and a citation; ⌄ puts the keyboard away. *Symbols ›* swaps in a row of
 logic symbols (∴ ∵ ¬ ∧ ∨ → ↔ ∀ ∃ □ ◇ ⊢ ⊨ ⊥) and *All…* for the full list; ‹ goes back. ⋯ also
@@ -116,13 +118,14 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 | `$$ … $$ {#eq:gauss}` | an equation numbered (1) |
 | `@fig:map`, `[see @tbl:res]`, `@eq:gauss` | Figure 1, see Table 1, Equation (1) |
 
-**Paragraphs and line breaks** (*Design ▸ Paragraphs & line breaks*, or ⋯ on the iPhone): by default a book is set like a printed
-one — a blank line starts a new paragraph with its first line indented, and a single Return runs on
-into the same paragraph, as in Markdown. Turn off **Indent new paragraphs** to set every paragraph
-flush left, and turn on **Return starts a new line** to make each Return a new line in the book.
-With both, the text is set line for line as you typed it: premises, propositions, verse, addresses.
-**Space between paragraphs** sets paragraphs apart with space instead of an indent. All three are
-kept per book and carried into the PDF, EPUB, Word and HTML exports.
+**Paragraphs and line breaks** (*Design ▸ Paragraphs & line breaks*, or ⋯ on the iPhone): each
+Return starts a new line on the page, and a blank line starts a new paragraph, its first line
+indented as in a printed book. Turn off **Indent new paragraphs** to set every paragraph flush
+left; the text is then set line for line exactly as you typed it — premises, propositions, verse.
+Turn off **Return starts a new line** for Markdown's own rule, where a single Return runs on into
+the same paragraph (right for text wrapped at a fixed width; a Markdown file imported in that shape
+is recognised and set that way). **Space between paragraphs** sets paragraphs apart with space
+instead of an indent. All are kept per book and carried into every export.
 
 **Book details** are YAML front matter in the *Title Page* section (or *Book details* in the top bar):
 
@@ -270,7 +273,8 @@ export and import as `.json`.
   drop caps, page setup. Math is kept as its TeX source.
 * **HTML** — one self-contained file (fonts and images inside).
 * **Markdown** — the whole book in one `.md` with front matter (a `.zip` if it has images);
-  citations stay as `[@key]` and the bibliography as a `bibtex` block, ready for Pandoc.
+  citations stay as `[@key]` and the bibliography as a `bibtex` block, ready for Pandoc. Line
+  breaks are written as hard breaks (`\` at the end of the line), so Pandoc keeps them too.
 
 ## Performance
 

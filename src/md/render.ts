@@ -89,6 +89,44 @@ export function markdown(lang = 'en'): MarkdownIt {
   return md;
 }
 
+/**
+ * For Markdown read elsewhere (Pandoc): marks each line break inside a
+ * paragraph as a hard break (a trailing backslash), so a book whose Returns
+ * start new lines keeps its lines. Paragraphs with display maths are left alone.
+ */
+export function hardLineBreaks(src: string, lang = 'en'): string {
+  const lines = src.split('\n');
+  const tokens = markdown(lang).parse(src, {});
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (t.type !== 'paragraph_open' || !t.map || t.map[1] - t.map[0] < 2) continue;
+    if (tokens[i + 1]?.content.includes('$$')) continue;
+    for (let l = t.map[0]; l < t.map[1] - 1; l++) {
+      if (lines[l].trim() && !/(\\| {2,})$/.test(lines[l])) lines[l] += '\\';
+    }
+  }
+  return lines.join('\n');
+}
+
+/**
+ * True when Markdown was hard-wrapped at a fixed width (as many editors and
+ * Pandoc write it): its single line breaks are not meant as new lines.
+ */
+export function looksHardWrapped(texts: string[]): boolean {
+  let multi = 0;
+  let wrapped = 0;
+  for (const t of texts) {
+    for (const block of t.split(/\n[ \t]*\n/)) {
+      const lines = block.split('\n').filter((l) => l.trim());
+      if (lines.length < 3 || lines.some((l) => /^(\s*([#>|*+-]|\d+[.)]|```|~~~)|\t| {4})/.test(l))) continue;
+      multi++;
+      const lens = lines.slice(0, -1).map((l) => l.length);
+      if (Math.min(...lens) >= 45 && Math.max(...lens) <= 100 && Math.max(...lens) - Math.min(...lens) <= 25) wrapped++;
+    }
+  }
+  return multi >= 2 && wrapped / multi >= 0.6;
+}
+
 /** Renders Markdown to a sanitised DocumentFragment. */
 export function renderMarkdown(src: string, opts: { lang?: string; lineOffset?: number; cite?: CiteCtx | null; breaks?: boolean } = {}): DocumentFragment {
   const html = markdown(opts.lang).render(src, { lineOffset: opts.lineOffset || 0, cite: opts.cite || undefined, breaks: !!opts.breaks });

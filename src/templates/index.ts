@@ -77,6 +77,11 @@ export function indentsParagraphs(s: TemplateSettings): boolean {
   return s.type.paragraphStyle !== 'block' && s.type.autoIndent !== false;
 }
 
+/** Whether a single Return in the text starts a new line in the book (on unless turned off). */
+export function keepsLineBreaks(s: TemplateSettings): boolean {
+  return s.type.lineBreaks !== false;
+}
+
 /** The first-line indent of a paragraph, in em (0 when paragraphs are not indented). */
 export function paragraphIndent(s: TemplateSettings): number {
   return indentsParagraphs(s) ? s.type.indent : 0;

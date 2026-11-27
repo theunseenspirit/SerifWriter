@@ -12,7 +12,7 @@
   ],
   "settings": {
     "page": { "size": "5.5x8.5", "margins": { "inside": 0.875, "outside": 0.65, "top": 0.85, "bottom": 0.85 }, "twoSided": true, "headSep": 0.32, "footSkip": 0.4 },
-    "type": { "body": "crimsonpro", "display": "crimsonpro", "size": 11.5, "leading": 1.12, "justify": true, "hyphenate": true, "indent": 1.5, "paragraphStyle": "indent", "autoIndent": true, "lineBreaks": false, "oldstyleNums": true },
+    "type": { "body": "crimsonpro", "display": "crimsonpro", "size": 11.5, "leading": 1.12, "justify": true, "hyphenate": true, "indent": 1.5, "paragraphStyle": "indent", "autoIndent": true, "lineBreaks": true, "oldstyleNums": true },
     "color": { "ink": "#1D1F21", "accent": "#2F5D62", "paper": "#FDFCF9" },
     "chapter": { "start": "any", "sink": 0.24, "label": "{n}", "partLabel": "Part {n}", "ornament": true },
     "dropCap": { "enabled": false, "lines": 2 },

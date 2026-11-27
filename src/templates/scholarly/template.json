@@ -11,7 +11,7 @@
   ],
   "settings": {
     "page": { "size": "6x9", "margins": { "inside": 0.9, "outside": 0.75, "top": 0.8, "bottom": 0.85 }, "twoSided": true, "headSep": 0.3, "footSkip": 0.4 },
-    "type": { "body": "ebgaramond", "display": "ebgaramond", "size": 11, "leading": 1.14, "justify": true, "hyphenate": true, "indent": 1.5, "paragraphStyle": "indent", "autoIndent": true, "lineBreaks": false, "oldstyleNums": true, "abbrSmallCaps": true },
+    "type": { "body": "ebgaramond", "display": "ebgaramond", "size": 11, "leading": 1.14, "justify": true, "hyphenate": true, "indent": 1.5, "paragraphStyle": "indent", "autoIndent": true, "lineBreaks": true, "oldstyleNums": true, "abbrSmallCaps": true },
     "color": { "ink": "#1A1A1A", "accent": "#22344F", "paper": "#FDFCF8" },
     "chapter": { "start": "recto", "sink": 0.2, "label": "Chapter {n}", "partLabel": "Part {Roman}", "ornament": false },
     "dropCap": { "enabled": false, "lines": 2 },

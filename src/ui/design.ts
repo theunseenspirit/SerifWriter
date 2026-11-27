@@ -1,7 +1,7 @@
 import type { ProjectCtx } from './project.ts';
 import type { TemplateDef, TemplateSettings } from '../model/types.ts';
 import { h, icon, button } from './dom.ts';
-import { toast, promptDialog, confirmDialog } from './dialogs.ts';
+import { toast, promptDialog, confirmDialog, sheetDrag } from './dialogs.ts';
 import { allTemplates, getTemplate, baseTemplate, effectiveSettings, PAGE_SIZES, setCustomTemplates, injectTemplateCss, indentsParagraphs, templateDefaults } from '../templates/index.ts';
 import { FONTS, FONT_IDS } from '../typeset/fonts.ts';
 import { ORNAMENT_SETS } from '../typeset/ornaments.ts';
@@ -14,16 +14,19 @@ import { isPhone, syncThemeColor } from './viewport.ts';
 // Changes are stored as overrides on the project; "Save as template" turns
 // them into a reusable template (JSON settings + CSS).
 
-let openDrawer: HTMLElement | null = null;
+let closeOpen: (() => void) | null = null;
 
+/** Opens the Design panel, or closes it if it is open. */
 export function openDesign(ctx: ProjectCtx): void {
-  if (openDrawer) { openDrawer.remove(); openDrawer = null; return; }
+  if (closeOpen) { closeOpen(); return; }
   if (isPhone()) ctx.pane('pages'); // on a phone the design sheet slides up over the pages, so you see each change
   const drawer = h('aside', { class: 'drawer', 'aria-label': 'Design' });
-  openDrawer = drawer;
+  const btn = document.querySelector('.pj-design');
   document.body.appendChild(drawer);
+  btn?.classList.add('on');
   const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !document.querySelector('dialog[open]')) close(); };
-  const close = () => { drawer.remove(); openDrawer = null; document.removeEventListener('keydown', onKey); };
+  const close = () => { drawer.remove(); closeOpen = null; btn?.classList.remove('on'); document.removeEventListener('keydown', onKey); };
+  closeOpen = close;
   document.addEventListener('keydown', onKey);
   render(ctx, drawer, close);
 }
@@ -304,8 +307,7 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
     sec('App', row('Preview delay', previewDelay, 'How long after you stop typing the pages update.'), row('Appearance', theme)),
   );
 
-  drawer.replaceChildren(
-    h('div', { class: 'drawer-head' }, h('h2', null, 'Design'), h('button', { class: 'btn icon', type: 'button', 'aria-label': 'Close', onclick: close }, icon('close'))),
-    body,
-  );
+  const head = h('div', { class: 'drawer-head' }, h('h2', null, 'Design'), h('button', { class: 'btn icon', type: 'button', 'aria-label': 'Close', onclick: close }, icon('close')));
+  sheetDrag(drawer, head, close);
+  drawer.replaceChildren(head, body);
 }
