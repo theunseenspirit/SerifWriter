@@ -176,7 +176,41 @@ export function formatDateTime(ts: number): string {
 
 export const fmtNum = (n: number) => n.toLocaleString();
 
-export function downloadBlob(blob: Blob, filename: string): void {
+/**
+ * Saves a file. On a computer it downloads; on a phone or tablet it opens the
+ * share sheet instead (Save to Files, AirDrop to your Mac, Mail…), which is how
+ * iOS saves files from a Home Screen app. Returns which one happened.
+ */
+export function downloadBlob(blob: Blob, filename: string): 'download' | 'share' {
+  const file = typeof File === 'function' ? new File([blob], filename, { type: blob.type || 'application/octet-stream' }) : null;
+  const touch = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  if (file && touch && navigator.canShare?.({ files: [file] })) {
+    void shareFile(file, blob, filename);
+    return 'share';
+  }
+  plainDownload(blob, filename);
+  return 'download';
+}
+
+async function shareFile(file: File, blob: Blob, filename: string): Promise<void> {
+  try {
+    await navigator.share({ files: [file] });
+  } catch (e: any) {
+    if (e?.name === 'AbortError') return; // the share sheet was closed
+    if (e?.name === 'NotAllowedError') {
+      // Making the file took longer than the tap that asked for it lasts: ask for one more tap.
+      const { toast } = await import('./ui/dialogs.ts');
+      toast(`“${filename}” is ready.`, {
+        action: 'Save…', timeout: 0,
+        onAction: () => { navigator.share({ files: [file] }).catch((err) => { if (err?.name !== 'AbortError') plainDownload(blob, filename); }); },
+      });
+      return;
+    }
+    plainDownload(blob, filename);
+  }
+}
+
+function plainDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

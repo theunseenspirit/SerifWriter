@@ -57,6 +57,11 @@ function footnoteRenderers(md: any) {
   r.footnote_caption = (tokens: any, idx: number) => String(tokens[idx].meta.id + 1);
 }
 
+/** With `env.breaks` (the book's "Return starts a new line"), a single line break in a paragraph is kept. */
+function lineBreaks(md: any) {
+  md.renderer.rules.softbreak = (_tokens: any, _idx: number, options: any, env: any) => (options.breaks || env?.breaks ? '<br>\n' : '\n');
+}
+
 const cache = new Map<string, MarkdownIt>();
 
 export function markdown(lang = 'en'): MarkdownIt {
@@ -78,14 +83,15 @@ export function markdown(lang = 'en'): MarkdownIt {
   md.use(citations);
   md.use(math);
   footnoteRenderers(md);
+  lineBreaks(md);
   // Keep ‘---’ inline as an em dash and ‘--’ as an en dash (typographer default).
   cache.set(key, md);
   return md;
 }
 
 /** Renders Markdown to a sanitised DocumentFragment. */
-export function renderMarkdown(src: string, opts: { lang?: string; lineOffset?: number; cite?: CiteCtx | null } = {}): DocumentFragment {
-  const html = markdown(opts.lang).render(src, { lineOffset: opts.lineOffset || 0, cite: opts.cite || undefined });
+export function renderMarkdown(src: string, opts: { lang?: string; lineOffset?: number; cite?: CiteCtx | null; breaks?: boolean } = {}): DocumentFragment {
+  const html = markdown(opts.lang).render(src, { lineOffset: opts.lineOffset || 0, cite: opts.cite || undefined, breaks: !!opts.breaks });
   const frag = sanitizeInto(html);
   if (src.includes('$')) typesetMath(frag);
   return frag;

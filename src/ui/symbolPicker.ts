@@ -26,5 +26,6 @@ export function openSymbolPicker(ctx: ProjectCtx): void {
   q.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); (grid.firstElementChild as HTMLElement | null)?.click(); } });
   m.body.append(q, h('p', { class: 'dlg-note' }, 'Or type the name in the text — \\forall then a space gives ∀. Whole formulas read best as math: $\\forall x\\,(Fx \\to Gx)$.'), grid);
   paint();
-  setTimeout(() => q.focus(), 0);
+  // On a phone the keyboard would cover the symbols: search only when asked.
+  if (!matchMedia('(pointer: coarse)').matches) setTimeout(() => q.focus(), 0);
 }

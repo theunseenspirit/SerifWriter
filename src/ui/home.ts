@@ -10,6 +10,7 @@ import { mirror, mirrorSupported, readProjectFolder } from '../storage/mirror.ts
 import { createSnapshot } from '../storage/snapshots.ts';
 import { projectFromSingleMarkdown } from '../storage/serialize.ts';
 import { countWords } from '../model/words.ts';
+import { isIOS, isStandalone } from './viewport.ts';
 
 // The library: every book as a cover. Create, rename, duplicate, delete
 // (to a trash you can restore from), import and back up.
@@ -39,14 +40,15 @@ async function storageLine(): Promise<HTMLElement> {
     const est = await navigator.storage?.estimate?.();
     const used = est?.usage ? `${(est.usage / 1048576).toFixed(1)} MB used` : '';
     el.append(icon(persisted ? 'check' : 'info', 14), h('span', null,
-      persisted ? 'Stored on this computer. The browser has agreed to keep it.' : 'Stored on this computer. Add a backup folder or download a backup to be safe.',
+      persisted ? 'Stored on this device. The browser has agreed to keep it.' : `Stored on this device. ${mirror.status === 'unsupported' ? 'Save a backup' : 'Add a backup folder or download a backup'} to be safe.`,
       used ? ` · ${used}` : ''));
-  } catch { el.textContent = 'Stored on this computer.'; }
+  } catch { el.textContent = 'Stored on this device.'; }
   return el;
 }
 
 function mirrorChip(): HTMLElement {
   const chip = h('button', { class: 'chip', type: 'button' });
+  if (mirror.status === 'unsupported' && isIOS()) chip.hidden = true; // no folders on an iPhone: Backup saves to Files instead
   const paint = () => {
     chip.replaceChildren(icon('folder', 15));
     const st = mirror.status;
@@ -164,6 +166,9 @@ async function exportOne(p: Project): Promise<void> {
   downloadBlob(blob, `${plainTitle(p.meta)}.zip`);
 }
 
+/** On a phone, files are shared (Save to Files, AirDrop) rather than downloaded. */
+const sharesFiles = () => matchMedia('(pointer: coarse)').matches && typeof navigator.canShare === 'function';
+
 function pickFile(accept: string): Promise<File | null> {
   return new Promise((resolve) => {
     const input = h('input', { type: 'file', accept, style: { display: 'none' } }) as HTMLInputElement;
@@ -177,10 +182,23 @@ export async function importBackupFile(file: File): Promise<void> {
   const { readBackup, applyImport } = await import('../storage/backup.ts');
   const plan = await readBackup(file);
   if (!plan.books.length) { toast('No books were found in that file.', { kind: 'error' }); return; }
-  const clash = plan.books.filter((b) => b.exists).length;
+  const clashes = plan.books.filter((b) => b.exists);
+  const clash = clashes.length;
   let mode: 'replace' | 'copy' = 'copy';
   if (clash) {
-    const choice = await choiceDialog('Restore backup', `This backup has ${plan.books.length} book${plan.books.length > 1 ? 's' : ''}. ${clash} already ${clash > 1 ? 'exist' : 'exists'} in your library. Replace ${clash > 1 ? 'them' : 'it'} with the backup, or keep both?`, [
+    // Say which copy is newer, so moving a book between a Mac and a phone never overwrites the latest writing.
+    const here = new Map((await repo.listProjects()).map((p) => [p.id, p]));
+    const ages = clashes.map((b) => ({ b, mine: here.get(b.project.id)?.updatedAt || 0 }));
+    const older = ages.filter((x) => x.b.project.updatedAt < x.mine).length;
+    let msg = `This backup has ${plan.books.length} book${plan.books.length > 1 ? 's' : ''}. ${clash} already ${clash > 1 ? 'exist' : 'exists'} in your library. Replace ${clash > 1 ? 'them' : 'it'} with the backup, or keep both?`;
+    if (clash === 1) {
+      const { b, mine } = ages[0];
+      const which = b.project.updatedAt > mine ? 'The file’s copy is newer.' : b.project.updatedAt < mine ? 'The copy here is newer — replacing it would lose the latest writing (a version is saved first, in History).' : 'Both copies were last edited at the same time.';
+      msg = `“${plainTitle(b.project.meta)}” is already in your library. The copy in the file was last edited ${formatRelative(b.project.updatedAt)}; the copy here ${formatRelative(mine)}. ${which} Replace it, or keep both?`;
+    } else if (older) {
+      msg += ` ${older} of them ${older > 1 ? 'are' : 'is'} older in the backup than here (a version of each is saved first, in History).`;
+    }
+    const choice = await choiceDialog('Restore backup', msg, [
       { value: 'copy', label: 'Keep both' },
       { value: 'replace', label: 'Replace with backup', danger: true },
     ]);
@@ -241,15 +259,15 @@ function backupMenu(anchor: HTMLElement): void {
     const done = toast('Preparing backup…', { timeout: 0 });
     try {
       const blob = await exportBackup({ includeHistory, includeDeleted: true });
-      downloadBlob(blob, backupFilename());
+      const how = downloadBlob(blob, backupFilename());
       await repo.kvSet('lastBackup', Date.now());
       done();
-      toast('Backup downloaded.', { kind: 'success' });
+      if (how === 'download') toast('Backup downloaded.', { kind: 'success' });
     } catch (e: any) { done(); toast(`Backup failed: ${e.message}`, { kind: 'error' }); }
   };
   showMenu(anchor, [
-    { label: 'Download backup (.zip)', icon: 'export', hint: 'all books', onClick: () => void run(false) },
-    { label: 'Download backup with version history', icon: 'history', onClick: () => void run(true) },
+    { label: sharesFiles() ? 'Save a backup (.zip)…' : 'Download backup (.zip)', icon: 'export', hint: 'all books', onClick: () => void run(false) },
+    { label: sharesFiles() ? 'Save a backup with version history…' : 'Download backup with version history', icon: 'history', onClick: () => void run(true) },
   ]);
 }
 
@@ -271,12 +289,24 @@ function card(p: Project, sections: number): HTMLElement {
       { label: 'Open', icon: 'book', onClick: open },
       { label: 'Rename…', icon: 'edit', onClick: () => void renameProject(p) },
       { label: 'Duplicate', icon: 'copy', onClick: () => void duplicate(p) },
-      { label: 'Download this book (.zip)', icon: 'export', onClick: () => void exportOne(p) },
+      { label: sharesFiles() ? 'Save or send this book (.zip)…' : 'Download this book (.zip)', icon: 'export', onClick: () => void exportOne(p) },
       { separator: true, label: '' },
       { label: 'Delete…', icon: 'trash', danger: true, onClick: () => void trash(p) },
     ]);
   });
   return el;
+}
+
+/** In Safari on an iPhone or iPad: how to put SerifWriter on the Home Screen, where it works offline like an app. */
+async function installTip(): Promise<HTMLElement | null> {
+  if (!isIOS() || isStandalone() || (await repo.kvGet('installTipDone'))) return null;
+  const tip = h('aside', { class: 'install-tip', role: 'note' },
+    h('div', { class: 'install-tip-text' },
+      h('strong', null, 'Put SerifWriter on your Home Screen'),
+      h('span', null, 'Tap ', h('span', { class: 'install-share', 'aria-label': 'Share' }, icon('export', 15)), ' Share, then ', h('b', null, 'Add to Home Screen'), '. It then opens like an app and works with no connection. Do it before you write: books kept here in Safari stay in Safari.')));
+  const ok = button('Got it', { class: 'small', onClick: async () => { tip.remove(); await repo.kvSet('installTipDone', true); } });
+  tip.appendChild(ok);
+  return tip;
 }
 
 export async function renderHome(container: HTMLElement): Promise<void> {
@@ -298,6 +328,7 @@ export async function renderHome(container: HTMLElement): Promise<void> {
   newCard.addEventListener('click', () => void newBookDialog());
 
   const main = h('main', { class: 'home' },
+    await installTip(),
     h('header', { class: 'home-head' },
       h('div', { class: 'brand' }, h('div', { class: 'brand-name' }, 'SerifWriter'), h('div', { class: 'brand-sub' }, 'Your library')),
       h('div', { class: 'home-actions' }, mirrorChip(), importBtn, backupBtn,

@@ -206,6 +206,7 @@ undo, spellcheck and IME support).
 | Folder mirror (File System Access) | ✅ | ❌ — use zip backup |
 | Drop caps (`initial-letter`) | ✅ 110+ | ✅ (prefixed) |
 | PDF export with exact page size | ✅ best | ⚠️ works; page-size support varies |
+| iPhone / iPad (Safari ▸ Add to Home Screen, from GitHub Pages) | — | ✅ phone layout, offline; files saved through the share sheet |
 
 **Use Chrome as the primary browser.** Data lives per *origin* (e.g.
 `http://localhost:4173`); keep using the same address, and move between
@@ -227,8 +228,9 @@ origins with the zip backup.
 | 7 | Scholarship: BibTeX citations (author–date, numeric, notes), bibliography, TeX math, numbered sections, cross-references, Scholarly Monograph template, A4/Royal page sizes, find & replace |
 | 8 | Writing stats: habits (streaks, words per day, time, pace, hours of day), book growth, chapter balance, prose metrics |
 | 9 | Index with page numbers, logic/philosophy symbols, indented lines, section running heads, abbreviation small caps, auto-update |
+| 10 | iPhone: phone layout (Write / Pages, contents drawer, writing keys above the keyboard, keyboard-aware sizing, safe areas), share-sheet saving, GitHub Pages publishing; paragraph settings (indent new paragraphs, Return starts a new line) |
 
-All nine phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
+All ten phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
 120,000-word / 350-page book, `tests/e2e/perf.cjs`):
 
 | | 4× throttle | 6× throttle |
@@ -238,7 +240,7 @@ All nine phases are built. Measured results (Chromium, CPU throttled 4× ≈ 201
 | Re-paginate the edited chapter (12 pages) after a pause | 64 ms, sliced | 118 ms, sliced |
 | Longest main-thread task while writing | 66 ms (after a pause) | 116 ms (after a pause) |
 
-Verification: 27 unit tests (`npm test`) and 34 browser checks (`npm run e2e`): autosave across
+Verification: 33 unit tests (`npm test`) and 56 browser checks (`npm run e2e`, 11 of them on an emulated iPhone 14 Plus): autosave across
 reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
 operations, versions, templates, backup → delete → restore, citations in all three styles, the
 bibliography, cross-references, math, find & replace, the citation picker, writing stats, symbol shortcuts, and

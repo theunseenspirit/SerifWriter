@@ -72,7 +72,8 @@ export class Preview {
 
   private scale(): number {
     if (this.zoom > 0) return this.zoom;
-    const avail = this.scroller.clientWidth - 48;
+    const w = this.scroller.clientWidth;
+    const avail = w - (w < 600 ? 24 : 48);
     const need = this.spread ? this.pageWpx * 2 + 4 : this.pageWpx;
     return Math.max(0.2, Math.min(1.6, avail / need));
   }
@@ -126,6 +127,7 @@ export class Preview {
   }
 
   scrollToFrame(frame: HTMLElement, block: 'start' | 'nearest' = 'nearest', respectUser = true): void {
+    if (!this.visible) return; // a phone showing the editor: the pages catch up when shown
     if (respectUser && performance.now() - this.lastUserScroll < 2500) return;
     const sr = this.scroller.getBoundingClientRect();
     const fr = frame.getBoundingClientRect();
@@ -144,6 +146,15 @@ export class Preview {
     const ref = this.book?.pageForLine(sectionId, line);
     if (ref) this.scrollToFrame(ref.frame);
   }
+
+  /** Scrolls straight to the page holding a source line, whatever the reader was doing. */
+  reveal(sectionId: string, line: number): void {
+    const ref = this.book?.pageForLine(sectionId, line) || this.book?.pageRefs.find((r) => r.sectionId === sectionId && !r.blank);
+    if (ref) this.scrollToFrame(ref.frame, 'start', false);
+  }
+
+  /** Whether the preview is on screen (on a phone it shares the screen with the editor). */
+  get visible(): boolean { return this.scroller.clientHeight > 0; }
 
   showSection(sectionId: string): void {
     const ref = this.book?.pageRefs.find((r) => r.sectionId === sectionId && !r.blank);

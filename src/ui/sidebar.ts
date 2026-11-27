@@ -41,6 +41,8 @@ export class Sidebar {
   private outlineKey = '';
   private folded = false; // the selected row's outline folded away by the writer
   private rendered = false;
+  /** Clicking the selected row folds its outline (off on phones, where a click opens the section and closes the drawer). */
+  foldOnReselect = true;
 
   constructor(opts: SidebarOptions) {
     this.opts = opts;
@@ -90,7 +92,7 @@ export class Sidebar {
       li.dataset.id = s.id;
       li.addEventListener('click', (e) => {
         if (more.contains(e.target as Node)) return;
-        if (s.id === this.active) this.fold(!this.folded);
+        if (s.id === this.active && this.foldOnReselect) this.fold(!this.folded);
         this.opts.onSelect(s.id);
       });
       li.addEventListener('contextmenu', (e) => { e.preventDefault(); this.itemMenu({ x: e.clientX, y: e.clientY }, s); });

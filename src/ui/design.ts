@@ -2,12 +2,13 @@ import type { ProjectCtx } from './project.ts';
 import type { TemplateDef, TemplateSettings } from '../model/types.ts';
 import { h, icon, button } from './dom.ts';
 import { toast, promptDialog, confirmDialog } from './dialogs.ts';
-import { allTemplates, getTemplate, baseTemplate, effectiveSettings, PAGE_SIZES, setCustomTemplates, injectTemplateCss } from '../templates/index.ts';
+import { allTemplates, getTemplate, baseTemplate, effectiveSettings, PAGE_SIZES, setCustomTemplates, injectTemplateCss, indentsParagraphs } from '../templates/index.ts';
 import { FONTS, FONT_IDS } from '../typeset/fonts.ts';
 import { ORNAMENT_SETS } from '../typeset/ornaments.ts';
 import * as repo from '../db/repo.ts';
 import { deepDiff, deepMerge, getPath, setPath, uid, debounce, downloadBlob, slug } from '../util.ts';
 import { bookCover } from './home.ts';
+import { isPhone, syncThemeColor } from './viewport.ts';
 
 // The Design drawer: choose a template, then adjust everything about it.
 // Changes are stored as overrides on the project; "Save as template" turns
@@ -17,6 +18,7 @@ let openDrawer: HTMLElement | null = null;
 
 export function openDesign(ctx: ProjectCtx): void {
   if (openDrawer) { openDrawer.remove(); openDrawer = null; return; }
+  if (isPhone()) ctx.pane('pages'); // on a phone the design sheet slides up over the pages, so you see each change
   const drawer = h('aside', { class: 'drawer', 'aria-label': 'Design' });
   openDrawer = drawer;
   document.body.appendChild(drawer);
@@ -138,6 +140,27 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
 
   const headingRoles: [string, string][] = [['part', 'Part (new page)'], ['chapter', 'Chapter (new page)'], ['section', 'Section'], ['subsection', 'Subsection'], ['minor', 'Minor heading'], ['runin', 'Run-in heading']];
 
+  // ── paragraphs & line breaks ──
+  const autoIndent = toggle('type.autoIndent', 'Indent new paragraphs');
+  const autoIndentBox = autoIndent.querySelector('input') as HTMLInputElement;
+  const indentRange = range('type.indent', 0, 4, 0.1, (v) => `${v.toFixed(1)} em`);
+  const indentRow = row('Indent', indentRange);
+  const spaced = h('input', { type: 'checkbox' }) as HTMLInputElement;
+  spaced.checked = cur.type.paragraphStyle === 'block';
+  const spacedToggle = h('label', { class: 'ds-toggle' }, spaced, h('span', null, 'Space between paragraphs'));
+  const paintParagraphs = () => {
+    const block = cur.type.paragraphStyle === 'block';
+    autoIndentBox.disabled = block;
+    autoIndentBox.checked = !block && cur.type.autoIndent !== false;
+    autoIndent.classList.toggle('off', block);
+    const on = indentsParagraphs(cur);
+    (indentRange.querySelector('input') as HTMLInputElement).disabled = !on;
+    indentRow.classList.toggle('off', !on);
+  };
+  autoIndentBox.addEventListener('change', paintParagraphs);
+  spaced.addEventListener('change', () => { set('type.paragraphStyle', spaced.checked ? 'block' : 'indent'); paintParagraphs(); });
+  paintParagraphs();
+
   // ── custom CSS ──
   const css = h('textarea', { class: 'input ds-css', spellcheck: 'false', placeholder: '/* CSS for this book only, e.g. */\n.op-title { font-style: italic; }\n.pg-head { letter-spacing: .3em; }' }) as HTMLTextAreaElement;
   css.value = project.customCss || '';
@@ -154,6 +177,7 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
   theme.value = document.documentElement.dataset.theme || 'auto';
   theme.addEventListener('change', async () => {
     if (theme.value === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme.value;
+    syncThemeColor();
     await repo.kvSet('theme', theme.value);
   });
 
@@ -231,8 +255,11 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
       row('Display font', select('type.display', fontOptions)),
       row('Size', range('type.size', 8, 14, 0.1, (v) => `${v.toFixed(1)} pt`)),
       row('Line spacing', range('type.leading', 0.9, 2.2, 0.01, (v) => `${v.toFixed(2)}×`), 'Like LaTeX’s \\linespread: 1.0 is single spacing (1.2 × the type size).'),
-      row('Paragraphs', select('type.paragraphStyle', [['indent', 'Indented'], ['block', 'Space between']])),
-      row('Indent', range('type.indent', 0, 4, 0.1, (v) => `${v.toFixed(1)} em`)),
+      row('', autoIndent, 'The first line of each new paragraph is indented, as in printed books. Off: every paragraph starts flush left.'),
+      indentRow,
+      row('', spacedToggle, 'A blank line’s worth of space between paragraphs, which are then never indented.'),
+      row('', toggle('type.lineBreaks', 'Return starts a new line'), 'On: each Return in your text starts a new line in the book. Off: a single Return runs on into the same paragraph, and a blank line starts a new one.'),
+      h('p', { class: 'ds-note ds-indent-note' }, 'With indenting off and Return on, each line is set just as you typed it, flush left.'),
       row('', toggle('type.justify', 'Justified text')),
       row('', toggle('type.hyphenate', 'Hyphenation')),
       row('', toggle('type.oldstyleNums', 'Old-style numerals')),

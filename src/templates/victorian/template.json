@@ -12,7 +12,7 @@
   ],
   "settings": {
     "page": { "size": "6x9", "margins": { "inside": 0.9, "outside": 0.75, "top": 0.95, "bottom": 0.9 }, "twoSided": true, "headSep": 0.3, "footSkip": 0.42 },
-    "type": { "body": "librebaskerville", "display": "librebaskerville", "size": 9.8, "leading": 1.2, "justify": true, "hyphenate": true, "indent": 1.4, "paragraphStyle": "indent", "oldstyleNums": false },
+    "type": { "body": "librebaskerville", "display": "librebaskerville", "size": 9.8, "leading": 1.2, "justify": true, "hyphenate": true, "indent": 1.4, "paragraphStyle": "indent", "autoIndent": true, "lineBreaks": false, "oldstyleNums": false },
     "color": { "ink": "#1F1A14", "accent": "#1F4730", "paper": "#FAF4E6" },
     "chapter": { "start": "recto", "sink": 0.2, "label": "Chapter {Roman}.", "partLabel": "Book {Roman}", "ornament": true },
     "dropCap": { "enabled": true, "lines": 3 },

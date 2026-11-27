@@ -60,6 +60,16 @@ export function effectiveSettings(project: Pick<Project, 'templateId' | 'overrid
   return deepMerge(base, project.overrides || {});
 }
 
+/** Whether new paragraphs get a first-line indent (never with space between paragraphs). */
+export function indentsParagraphs(s: TemplateSettings): boolean {
+  return s.type.paragraphStyle !== 'block' && s.type.autoIndent !== false;
+}
+
+/** The first-line indent of a paragraph, in em (0 when paragraphs are not indented). */
+export function paragraphIndent(s: TemplateSettings): number {
+  return indentsParagraphs(s) ? s.type.indent : 0;
+}
+
 export function pageSize(s: TemplateSettings) {
   return PAGE_SIZES[s.page.size] || PAGE_SIZES['6x9'];
 }
@@ -89,7 +99,7 @@ export function bookVars(s: TemplateSettings): Record<string, string> {
     '--ink': s.color.ink,
     '--accent': s.color.accent,
     '--paper': s.color.paper,
-    '--indent': `${s.type.indent}em`,
+    '--indent': `${paragraphIndent(s)}em`,
     '--sink': `${Math.max(0, s.chapter.sink * h - m.top).toFixed(3)}in`,
     '--third': `${Math.max(0, h / 3 - m.top).toFixed(3)}in`,
     '--text-align': s.type.justify ? 'justify' : 'left',
@@ -106,7 +116,7 @@ export function bookClasses(t: TemplateDef, s: TemplateSettings): string[] {
     t.builtIn ? '' : `tpl-c-${t.id}`,
     s.dropCap.enabled ? 'has-dropcap' : '',
     s.type.justify ? 'justify' : 'ragged',
-    s.type.paragraphStyle === 'block' ? 'para-block' : 'para-indent',
+    s.type.paragraphStyle === 'block' ? 'para-block' : indentsParagraphs(s) ? 'para-indent' : 'para-flush',
     s.page.twoSided ? 'two-sided' : 'one-sided',
     `rh-${s.runningHeads.align}`,
     `folio-${s.runningHeads.folio}`,

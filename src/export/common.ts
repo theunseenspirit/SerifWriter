@@ -1,6 +1,6 @@
 import type { Project, Section, TemplateSettings } from '../model/types.ts';
 import { renderSection } from '../typeset/sections.ts';
-import { effectiveSettings } from '../templates/index.ts';
+import { effectiveSettings, paragraphIndent } from '../templates/index.ts';
 import { formatLabel, escapeHtml } from '../util.ts';
 import { plainTitle } from '../model/defaults.ts';
 import * as repo from '../db/repo.ts';
@@ -106,7 +106,7 @@ body { font-family: ${fontFamilies.body}; line-height: ${lh}; color: ${s.color.i
   font-variant-numeric: ${s.type.oldstyleNums ? 'oldstyle-nums' : 'normal'}; font-kerning: normal; font-variant-ligatures: common-ligatures; }
 ${opts.screen ? `main { max-width: 34em; margin: 0 auto; padding: 8vh 1.5em 20vh; font-size: ${Math.max(17, s.type.size * 1.6).toFixed(1)}px; }
 section.chapter, section.part, section.front { margin-bottom: 6em; }` : ''}
-p { margin: 0; text-indent: ${s.type.paragraphStyle === 'block' ? 0 : s.type.indent}em; text-align: ${s.type.justify ? 'justify' : 'left'}; ${s.type.paragraphStyle === 'block' ? 'margin-bottom: .7em;' : ''} -webkit-hyphens: ${s.type.hyphenate ? 'auto' : 'manual'}; hyphens: ${s.type.hyphenate ? 'auto' : 'manual'}; }
+p { margin: 0; text-indent: ${paragraphIndent(s)}em; text-align: ${s.type.justify ? 'justify' : 'left'}; ${s.type.paragraphStyle === 'block' ? 'margin-bottom: .7em;' : ''} -webkit-hyphens: ${s.type.hyphenate ? 'auto' : 'manual'}; hyphens: ${s.type.hyphenate ? 'auto' : 'manual'}; }
 h1 + p, header + p, .scene-break + p, p.first, p.dropcap, p.after-break, blockquote p, figure + p, ul + p, ol + p, h2 + p, h3 + p, h4 + p { text-indent: 0; }
 header.opener { text-align: center; margin: 3em 0 2.4em; ${opts.screen ? '' : 'page-break-before: always; break-before: page;'} }
 .op-label { font-family: ${fontFamilies.display}; color: ${s.color.accent}; ${spaced ? caps(0.18) : ''} font-size: .9em; margin: 0 0 .6em; }
