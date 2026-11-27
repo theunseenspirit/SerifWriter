@@ -118,7 +118,7 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
 
   // ── paragraphs: indenting off, and Return starting a new line ──
   await page.locator('.editor-ta').press('Control+End');
-  await page.keyboard.type('\n\nP1. All men are mortal.\nP2. Socrates is a man.\n\nC. So Socrates is mortal.');
+  await page.keyboard.type('\n\nP1. All men are mortal.\nP2. Socrates is a man.\n\nC. So Socrates is mortal. (P1, P2)');
   await page.waitForTimeout(1600);
   await idle(page);
   const indentOf = () => page.evaluate(() => { const p = Array.from(document.querySelectorAll('.pv-root .pg-content p')).find((x) => x.textContent.startsWith('C. So Socrates')); return p ? getComputedStyle(p).textIndent : null; });
@@ -141,6 +141,16 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   check('space between paragraphs greys out the indent toggle', await page.locator('.ds-toggle', { hasText: 'Indent new paragraphs' }).locator('input').isDisabled());
   await page.keyboard.press('Escape');
   await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.overrides = {}; return c.relayout(); });
+
+  // ── the Syllogism template sets arguments out: labels in a column, sources to the right, a rule before the conclusion ──
+  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.templateId = 'syllogism'; return c.relayout(); });
+  await page.waitForTimeout(800);
+  await idle(page);
+  const arg = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root p.arg-line')).map((p) => ({ label: p.querySelector('.arg-label').textContent.trim(), src: p.querySelector('.arg-src')?.textContent.trim() || '', rule: getComputedStyle(p).backgroundImage !== 'none', text: p.textContent.includes('All men are mortal.') || p.textContent.includes('Socrates') })));
+  const seen = arg.length ? '' : await page.evaluate(() => [document.querySelector('.pv-root').className, ...Array.from(document.querySelectorAll('.pv-root p')).filter((x) => /All men|Socrates is/.test(x.textContent)).map((x) => x.innerHTML.slice(0, 160))].join(' || '));
+  check('Syllogism sets each premise and the conclusion apart, with its source and a rule above the conclusion', JSON.stringify(arg.map((a) => [a.label, a.src, a.rule])) === '[["P1","",false],["P2","",false],["C","(P1, P2)",true]]' && arg.every((a) => a.text), JSON.stringify(arg) + seen);
+  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.templateId = 'classic'; return c.relayout(); });
+  await idle(page);
 
   // ── service worker: works offline ──
   await page.evaluate(() => navigator.serviceWorker.ready);

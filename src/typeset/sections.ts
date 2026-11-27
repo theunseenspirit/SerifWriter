@@ -133,6 +133,39 @@ function isPlainParagraph(el: Element): boolean {
   return text.length > 0 && !el.querySelector('img');
 }
 
+// Arguments: a line opening with a label — P1:, A3:, R1., C: — is a premise, assumption, rule or
+// conclusion; a closing (1.6) or (P1, P2, R1) is where it comes from.
+const ARG_LABEL = /^\s*([A-Z]{1,2}\d{0,3}'*)\s*[:.]\s+/;
+const ARG_SOURCE = /\s*\(((?:\s*(?:\d+(?:\.\d+)*|[A-Z]{1,2}\d{0,3}'*)\s*,?)+)\)\s*$/;
+const argLines = (el: Element | undefined): string[] | null => {
+  if (!el || !isPlainParagraph(el)) return null;
+  const lines = el.innerHTML.split(/<br\s*\/?>\s*/);
+  return lines.every((l) => ARG_LABEL.test(l)) ? lines : null;
+};
+
+/**
+ * A paragraph whose every line is labelled (or a labelled line among others) becomes an argument:
+ * one block per premise or conclusion, its label in a column, its source set to the right.
+ */
+function argument(el: HTMLElement, prev?: Element, next?: Element): HTMLElement[] | null {
+  const lines = argLines(el);
+  if (!lines || (lines.length < 2 && !argLines(prev) && !argLines(next))) return null;
+  const first = Number(el.dataset.line || 0);
+  const out = lines.map((line, k) => {
+    const m = ARG_LABEL.exec(line)!;
+    let text = line.slice(m[0].length);
+    const src = ARG_SOURCE.exec(text);
+    if (src) text = text.slice(0, src.index);
+    const p = h('p', `arg-line ${m[1].startsWith('C') ? 'arg-concl' : 'arg-prem'}`,
+      `<span class="arg-label">${m[1]} </span>${text}${src ? `<span class="arg-src"> (${src[1].trim()})</span>` : ''}`);
+    if (el.dataset.line) p.dataset.line = String(first + k);
+    return p;
+  });
+  // A conclusion never starts a page apart from the premise just before it.
+  out.forEach((p, k) => { if (p.classList.contains('arg-prem') && out[k + 1]?.classList.contains('arg-concl')) p.classList.add('keep-next'); });
+  return out;
+}
+
 /** Sets runs of three or more capitals (NATO, UNESCO, 1990s USA) in small caps, as book typography does; roman numerals are left alone. */
 function abbrSmallCaps(root: Element): void {
   const re = /\b[A-Z][A-Z0-9&]{1,}[A-Z0-9]\b/g;
@@ -273,6 +306,12 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
       el.innerHTML = `${n ? `<span class="cap-label">Table ${n}.</span> ` : ''}${el.innerHTML.replace(/^\s*Table:\s*/, '').replace(/\s*\{#tbl:[\w:.-]+\}\s*$/, '')}`;
       el.className = 'tbl-cap keep-next';
       if (blocks.at(-1)?.tagName === 'TABLE') blocks.splice(blocks.length - 1, 0, el); else blocks.push(el);
+      continue;
+    }
+    const arg = s.type.arguments ? argument(el, children[i - 1], children[i + 1]) : null;
+    if (arg) {
+      blocks.push(...arg);
+      wantDrop = afterBreak = false;
       continue;
     }
     if (isPlainParagraph(el)) {

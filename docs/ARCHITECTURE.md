@@ -179,7 +179,9 @@ template (base + settings + optional extra CSS) in IndexedDB, exportable as
 Built-ins: **Classic Leather** (the flagship, matching `demo.tex`),
 **Modern Literary**, **Manuscript** (standard submission format),
 **Ornate Victorian**, **Pocket Edition**, **Scholarly Monograph**
-(university press: numbered sections, author–date citations).
+(university press: numbered sections, author–date citations), **Syllogism** (the Scholarly page
+with arguments laid out: a paragraph of labelled lines — `P1:`, `C:` — becomes one block per
+premise or conclusion in `typeset/sections.ts`, styled by the shared `book.css`).
 
 Fonts (SIL Open Font License, bundled, subset to Latin with *all* OpenType
 features kept — the Google Fonts/npm builds strip small caps and old-style
@@ -240,7 +242,7 @@ All ten phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018
 | Re-paginate the edited chapter (12 pages) after a pause | 64 ms, sliced | 118 ms, sliced |
 | Longest main-thread task while writing | 66 ms (after a pause) | 116 ms (after a pause) |
 
-Verification: 35 unit tests (`npm test`) and 69 browser checks (`npm run e2e`, 21 of them on an emulated iPhone 14 Plus): autosave across
+Verification: 35 unit tests (`npm test`) and 70 browser checks (`npm run e2e`, 21 of them on an emulated iPhone 14 Plus): autosave across
 reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
 operations, versions, templates, backup → delete → restore, citations in all three styles, the
 bibliography, cross-references, math, find & replace, the citation picker, writing stats, symbol shortcuts, and

@@ -140,6 +140,8 @@ export interface TemplateSettings {
     autoIndent?: boolean;
     /** A single Return starts a new line, instead of running on into the same paragraph. Default off. */
     lineBreaks?: boolean;
+    /** Paragraphs of labelled lines (P1: …, C: …) set as arguments: premises and conclusions. Default off. */
+    arguments?: boolean;
     oldstyleNums: boolean;
     abbrSmallCaps?: boolean; // NATO, UNESCO in small capitals
   };

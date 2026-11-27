@@ -239,7 +239,7 @@ backups and the folder mirror.
 
 ## Design
 
-Six templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
+Seven templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
 
 * **Classic Leather** — the flagship, after the `demo.tex` prototype: 6 × 9 in, mirrored margins
   (0.95/0.8/0.9/1.0 in), Cardo 11 pt, real small caps and old-style figures, ink `#1E1A16` and
@@ -253,6 +253,11 @@ Six templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
 * **Scholarly Monograph** — a university-press interior: 6 × 9, EB Garamond, author–date citations,
   page footnotes, flush-left openings, chapter and section running heads, small capitals for
   abbreviations. Sections are unnumbered, so you can number them yourself.
+* **Syllogism** — the Scholarly Monograph page for books of arguments. A paragraph whose lines
+  start with labels — `P1:`, `A3:`, `R1:`, `C:` — is set as an argument: each premise and
+  conclusion on its own, the label in a column and the text hanging beneath it, sources such as
+  `(1.6)` or `(P1, P2, R1)` to the right, and a rule above each conclusion that follows premises.
+  Any template can do the same with *Design ▸ Paragraphs & line breaks ▸ Lay out arguments*.
 
 *Design* adjusts everything: accent presets or any colour, ink and paper, text and display fonts
 (Cardo, EB Garamond, Crimson Pro, Libre Baskerville, Cormorant — all bundled, all offline), size,
