@@ -463,6 +463,9 @@ select.input { padding-right: 26px; }
 .pj-key.ui { font: 500 13px/1 var(--ui-font); color: var(--ink-2); }
 .pj-key.b { font-weight: 700; font-family: var(--ui-font); font-size: 16px; }
 .pj-key.i { font-style: italic; font-size: 18px; }
+.pj-key.sub { color: var(--accent-ui); }
+.pj-key.back { font: 24px/1 var(--ui-font); color: var(--accent-ui); }
+.pj-keys-scroll[hidden] { display: none; }
 .pj-key.done { color: var(--accent-ui); font-size: 22px; border-left: 1px solid var(--line); border-radius: 0 8px 8px 0; }
 .pj-keys-sep { flex: none; width: 1px; height: 22px; margin: 0 4px; background: var(--line-2); }
 .install-tip { display: flex; align-items: center; gap: 14px; margin: 0 0 22px; padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel); font-size: 13.5px; line-height: 1.45; }

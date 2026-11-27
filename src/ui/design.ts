@@ -2,11 +2,11 @@ import type { ProjectCtx } from './project.ts';
 import type { TemplateDef, TemplateSettings } from '../model/types.ts';
 import { h, icon, button } from './dom.ts';
 import { toast, promptDialog, confirmDialog } from './dialogs.ts';
-import { allTemplates, getTemplate, baseTemplate, effectiveSettings, PAGE_SIZES, setCustomTemplates, injectTemplateCss, indentsParagraphs } from '../templates/index.ts';
+import { allTemplates, getTemplate, baseTemplate, effectiveSettings, PAGE_SIZES, setCustomTemplates, injectTemplateCss, indentsParagraphs, templateDefaults } from '../templates/index.ts';
 import { FONTS, FONT_IDS } from '../typeset/fonts.ts';
 import { ORNAMENT_SETS } from '../typeset/ornaments.ts';
 import * as repo from '../db/repo.ts';
-import { deepDiff, deepMerge, getPath, setPath, uid, debounce, downloadBlob, slug } from '../util.ts';
+import { deepDiff, getPath, setPath, uid, debounce, downloadBlob, slug } from '../util.ts';
 import { bookCover } from './home.ts';
 import { isPhone, syncThemeColor } from './viewport.ts';
 
@@ -26,10 +26,6 @@ export function openDesign(ctx: ProjectCtx): void {
   const close = () => { drawer.remove(); openDrawer = null; document.removeEventListener('keydown', onKey); };
   document.addEventListener('keydown', onKey);
   render(ctx, drawer, close);
-}
-
-function templateDefaults(t: TemplateDef): TemplateSettings {
-  return deepMerge(baseTemplate(t).settings, t.settings);
 }
 
 function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
@@ -246,6 +242,12 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
 
   const body = h('div', { class: 'drawer-body' },
     sec('Template', tpls, h('p', { class: 'ds-note' }, tpl.description), h('div', { class: 'ds-actions' }, saveAs, reset, exportTpl, importTpl, del)),
+    sec('Paragraphs & line breaks',
+      row('', autoIndent, 'The first line of each new paragraph is indented, as in printed books. Off: every paragraph starts flush left.'),
+      indentRow,
+      row('', spacedToggle, 'A blank line’s worth of space between paragraphs, which are then never indented.'),
+      row('', toggle('type.lineBreaks', 'Return starts a new line'), 'On: each Return in your text starts a new line in the book. Off: a single Return runs on into the same paragraph, and a blank line starts a new one.'),
+      h('p', { class: 'ds-note ds-indent-note' }, 'With indenting off and Return on, each line is set just as you typed it, flush left.')),
     sec('Colour',
       row('Accent', swatches),
       row('Ink', colorInput('color.ink')),
@@ -255,11 +257,6 @@ function render(ctx: ProjectCtx, drawer: HTMLElement, close: () => void): void {
       row('Display font', select('type.display', fontOptions)),
       row('Size', range('type.size', 8, 14, 0.1, (v) => `${v.toFixed(1)} pt`)),
       row('Line spacing', range('type.leading', 0.9, 2.2, 0.01, (v) => `${v.toFixed(2)}×`), 'Like LaTeX’s \\linespread: 1.0 is single spacing (1.2 × the type size).'),
-      row('', autoIndent, 'The first line of each new paragraph is indented, as in printed books. Off: every paragraph starts flush left.'),
-      indentRow,
-      row('', spacedToggle, 'A blank line’s worth of space between paragraphs, which are then never indented.'),
-      row('', toggle('type.lineBreaks', 'Return starts a new line'), 'On: each Return in your text starts a new line in the book. Off: a single Return runs on into the same paragraph, and a blank line starts a new one.'),
-      h('p', { class: 'ds-note ds-indent-note' }, 'With indenting off and Return on, each line is set just as you typed it, flush left.'),
       row('', toggle('type.justify', 'Justified text')),
       row('', toggle('type.hyphenate', 'Hyphenation')),
       row('', toggle('type.oldstyleNums', 'Old-style numerals')),

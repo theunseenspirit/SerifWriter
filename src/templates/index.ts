@@ -1,5 +1,5 @@
 import type { PageSizeId, Project, TemplateDef, TemplateSettings } from '../model/types.ts';
-import { deepMerge } from '../util.ts';
+import { deepDiff, deepMerge, setPath } from '../util.ts';
 import { FONTS, fontStack } from '../typeset/fonts.ts';
 
 import classicJson from './classic/template.json';
@@ -58,6 +58,18 @@ export function effectiveSettings(project: Pick<Project, 'templateId' | 'overrid
   // Custom templates store complete settings, but merge onto the base so new keys get defaults.
   const base = deepMerge(baseTemplate(t).settings, t.settings);
   return deepMerge(base, project.overrides || {});
+}
+
+/** A template's own settings, before a book's adjustments. */
+export function templateDefaults(t: TemplateDef): TemplateSettings {
+  return deepMerge(baseTemplate(t).settings, t.settings);
+}
+
+/** Changes one setting of a book (e.g. 'type.autoIndent'), stored as an adjustment to its template. */
+export function setBookSetting(project: Pick<Project, 'templateId' | 'overrides'>, path: string, value: unknown): void {
+  const cur = effectiveSettings(project);
+  setPath(cur, path, value);
+  project.overrides = deepDiff(templateDefaults(getTemplate(project.templateId)), cur) || {};
 }
 
 /** Whether new paragraphs get a first-line indent (never with space between paragraphs). */

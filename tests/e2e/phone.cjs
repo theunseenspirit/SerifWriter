@@ -33,10 +33,24 @@ module.exports = async function phoneChecks(URL, check) {
   await page.locator('.editor-ta').tap();
   await page.locator('.editor-ta').press('Control+End');
   await page.keyboard.type('\n\nAll men are mortal');
+  check('phone: the writing keys start with line and format keys; symbols wait behind “Symbols ›”', !(await page.locator('.pj-key[title="Therefore"]').isVisible()) && await page.locator('.pj-key[title="Symbols"]').isVisible());
   await page.locator('.pj-key[title^="Indent"]').tap();
+  await page.locator('.pj-key[title="Symbols"]').tap();
   await page.locator('.pj-key[title="Therefore"]').tap();
   const last = await page.evaluate(() => { const v = document.querySelector('.editor-ta').value; return v.slice(v.lastIndexOf('\n') + 1); });
-  check('phone: the ⇥ key indents the line and ∴ types a symbol, as there is no Tab key', last === '\tAll men are mortal∴', JSON.stringify(last));
+  check('phone: the ⇥ key indents the line and the Symbols row types ∴, as there is no Tab key', last === '\tAll men are mortal∴', JSON.stringify(last));
+  await page.locator('.pj-key[title^="Back"]').tap();
+  check('phone: ‹ goes back to the writing keys', await page.locator('.pj-key[title="Bold"]').isVisible() && !(await page.locator('.pj-key[title="Therefore"]').isVisible()));
+
+  await page.locator('.pj-more').tap();
+  await page.locator('.menu-item', { hasText: 'Indent new paragraphs' }).tap();
+  await page.locator('.pj-more').tap();
+  await page.locator('.menu-item', { hasText: 'Return starts a new line' }).tap();
+  const quick = await page.evaluate(() => window.serifwriter.project().session.project.overrides.type);
+  await page.locator('.pj-more').tap();
+  const ticks = await page.locator('.menu-item').evaluateAll((els) => els.filter((e) => /Indent new paragraphs|Return starts/.test(e.textContent)).map((e) => e.querySelector('.menu-ico-space')?.textContent));
+  await page.keyboard.press('Escape');
+  check('phone: ⋯ has one-tap toggles for paragraph indents and line breaks, ticked when on', JSON.stringify(quick) === '{"autoIndent":false,"lineBreaks":true}' && ticks.join() === ',✓', `${JSON.stringify(quick)} ${ticks.join()}`);
 
   await page.locator('.pj-more').tap();
   await page.locator('.menu-item', { hasText: 'Design' }).tap();
