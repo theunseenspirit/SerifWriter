@@ -336,6 +336,9 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
 
   // ── on an iPhone ──
   await require('./phone.cjs')(URL, check);
+
+  // ── between two devices ──
+  await require('./sync.cjs')(URL, check);
   const failed = results.filter((r) => !r.ok).length;
   console.log(`\n${results.length - failed}/${results.length} passed`);
   process.exit(failed ? 1 : 0);

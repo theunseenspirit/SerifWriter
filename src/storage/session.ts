@@ -4,6 +4,8 @@ import { countWords } from '../model/words.ts';
 import { metaFromTitleContent, titleContentFromMeta } from '../model/defaults.ts';
 import { todayKey } from '../util.ts';
 import { emptyStats } from '../model/stats.ts';
+import { write } from '../db/idb.ts';
+import { applyToProject, type SyncBook } from '../sync/merge.ts';
 
 // The open project. Holds sections in memory, writes changes to IndexedDB
 // (atomically) and keeps a synchronous localStorage journal so text typed
@@ -211,6 +213,19 @@ export class ProjectSession {
     this.sections = ids.map((id) => map.get(id)!).filter(Boolean);
     this.project.order = this.sections.map((s) => s.id);
     this.markProjectDirty();
+  }
+
+  /** Takes in a copy merged with another device's: its text, sections, order and design, not counted as writing here. */
+  async applySync(b: SyncBook): Promise<string[]> {
+    const r = await applyToProject(this.project, this.sections, b);
+    this.sections = r.sections;
+    this.byId = new Map(r.sections.map((s) => [s.id, s]));
+    for (const id of r.changed) this.dirty.add(id);
+    if (r.removed.length) await write(r.removed.map((id) => ({ store: 'sections' as const, del: id })));
+    this.lastTotal = this.totalWords; // words written on the other device are not today's writing here
+    this.projectDirty = true;
+    await this.flush();
+    return [...r.changed, ...r.removed];
   }
 
   /** Updates book metadata and keeps the title page's front matter in step. */

@@ -231,8 +231,9 @@ origins with the zip backup.
 | 8 | Writing stats: habits (streaks, words per day, time, pace, hours of day), book growth, chapter balance, prose metrics |
 | 9 | Index with page numbers, logic/philosophy symbols, indented lines, section running heads, abbreviation small caps, auto-update |
 | 10 | iPhone: phone layout (Write / Pages, contents drawer, writing keys above the keyboard, keyboard-aware sizing, safe areas), share-sheet saving, GitHub Pages publishing; paragraph settings (indent new paragraphs, Return starts a new line) |
+| 11 | Sync between devices through a private GitHub repository (`src/sync/`): one JSON file per book, a three-way merge per section against the version both devices last agreed on (conflicting edits kept side by side), the open book merged through the editor's session |
 
-All ten phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
+All eleven phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018 MacBook Air,
 120,000-word / 350-page book, `tests/e2e/perf.cjs`):
 
 | | 4× throttle | 6× throttle |
@@ -242,7 +243,7 @@ All ten phases are built. Measured results (Chromium, CPU throttled 4× ≈ 2018
 | Re-paginate the edited chapter (12 pages) after a pause | 64 ms, sliced | 118 ms, sliced |
 | Longest main-thread task while writing | 66 ms (after a pause) | 116 ms (after a pause) |
 
-Verification: 35 unit tests (`npm test`) and 74 browser checks (`npm run e2e`, 21 of them on an emulated iPhone 14 Plus): autosave across
+Verification: 43 unit tests (`npm test`) and 81 browser checks (`npm run e2e`, 21 of them on an emulated iPhone 14 Plus and 7 syncing a Mac-sized and a phone-sized window through a stand-in for GitHub): autosave across
 reload, crash-journal recovery on tab close, offline launch, folder mirror, image paste, section
 operations, versions, templates, backup → delete → restore, citations in all three styles, the
 bibliography, cross-references, math, find & replace, the citation picker, writing stats, symbol shortcuts, and

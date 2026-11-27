@@ -12,6 +12,7 @@ import { openProjectView, closeProjectView, getProjectCtx } from './ui/project.t
 import { toast } from './ui/dialogs.ts';
 import { projectFromSingleMarkdown } from './storage/serialize.ts';
 import { trackViewport, syncThemeColor } from './ui/viewport.ts';
+import { sync } from './sync/engine.ts';
 
 // Boot: open the database, replay the crash journal, then route.
 
@@ -82,8 +83,10 @@ async function boot(): Promise<void> {
 
   handleLaunchFiles();
   registerServiceWorker();
-  // Console access for power users and tests (everything stays local).
-  (window as any).serifwriter = { repo, mirror, project: getProjectCtx };
+  // Sync with the other devices, if this one is connected.
+  void sync.init().then(() => sync.now('all'));
+  // Console access for power users and tests.
+  (window as any).serifwriter = { repo, mirror, sync, project: getProjectCtx };
 }
 
 /** "Open with SerifWriter" for .md files when installed (Chrome file handlers). */

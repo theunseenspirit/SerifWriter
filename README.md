@@ -67,19 +67,34 @@ has *Indent new paragraphs* and *Return starts a new line* as one-tap toggles. L
 *Pages* to write at that paragraph. *Design* opens as a sheet over the pages, so each change shows
 as you make it. Turn the phone sideways for a wider editor; *Read* turns pages with a swipe.
 
-### Moving a book between your Mac and your iPhone
+### Syncing your Mac and your iPhone
 
-Each device keeps its own books — there is no server to sync through. To carry a book across:
+Each device keeps its books in its own browser storage. To keep them in step, connect each device
+to a **private GitHub repository** of your own — no other service, nothing to pay:
 
-1. On the Mac, in the library: ⋯ on the book ▸ *Download this book (.zip)*, then AirDrop the file
-   to your iPhone (or save it to iCloud Drive).
-2. On the iPhone: *Import* ▸ *Backup (.zip)…* and pick it in Files.
-3. To bring it back: on the iPhone, ⋯ on the book ▸ *Save or send this book (.zip)…* opens the share
-   sheet (AirDrop to your Mac, or Save to Files); then *Import* it on the Mac.
+1. On GitHub, [create a new repository](https://github.com/new), set it to **Private**, and name
+   it (for example `serifwriter-books`).
+2. [Create a fine-grained access token](https://github.com/settings/personal-access-tokens/new):
+   *Repository access ▸ Only select repositories* ▸ that repository; *Permissions ▸ Repository
+   permissions ▸ Contents ▸ Read and write*; an expiration up to a year.
+3. In SerifWriter's library, tap **Sync devices…** and enter the repository (`yourname/serifwriter-books`)
+   and the token. Do the same on each device (AirDrop or Notes gets the token to the phone).
 
-When the book is already there, the import says which copy was edited more recently before you
-choose *Replace* or *Keep both*, and a version of the copy being replaced is saved in History first,
-so nothing is lost either way.
+Each book is one file in the repository (`books/<id>.json`), and every sync is a commit, so the
+repository is also a full history. A device syncs when the app opens or comes back to the front,
+every 30 seconds while it is open, and when you leave it — so the other device has your writing
+within about half a minute. Syncing merges, chapter by chapter: changes made on one device flow to
+the other, different chapters edited on each both survive, and if the *same* chapter was changed on
+both before they synced, the newer version stays in place and the other is kept beside it as
+“(other device's copy)”, with a version saved in History first. A book deleted forever on one
+device goes to Recently Deleted on the others. Images are not synced yet.
+
+The token stays on the device, in its browser storage, and can read and change only that one
+repository. *Stop syncing on this device* (in the sync menu) removes it.
+
+Without sync, a book still moves by file: ⋯ on the book ▸ *Download this book (.zip)* on the Mac
+(*Save or send this book* on the phone), AirDrop it across, and *Import* it; the import says which
+copy is newer before you replace one.
 
 ## Your words are safe
 
