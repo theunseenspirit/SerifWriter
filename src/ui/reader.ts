@@ -23,7 +23,7 @@ export async function openReader(ctx: ProjectCtx): Promise<void> {
   bookRoot.setAttribute('style', `${book.view.getAttribute('style') || ''};display:contents`);
   bookRoot.lang = book.view.lang;
   bookRoot.appendChild(spread);
-  const label = h('span', { style: { minWidth: '150px' } });
+  const label = h('span', { class: 'rd-label' });
   const slider = h('input', { type: 'range', min: 0, max: refs.length - 1, step: 1, 'aria-label': 'Page' }) as HTMLInputElement;
   const prevZone = h('div', { class: 'reader-nav prev', title: 'Previous page' });
   const nextZone = h('div', { class: 'reader-nav next', title: 'Next page' });
@@ -41,7 +41,7 @@ export async function openReader(ctx: ProjectCtx): Promise<void> {
     stage,
     h('div', { class: 'reader-bar' },
       iconButton('close', 'Close (Esc)', close),
-      h('span', { style: { fontFamily: 'var(--serif-ui)', letterSpacing: '.12em', textTransform: 'uppercase', fontSize: '11px' } }, plainTitle(session.project.meta)),
+      h('span', { class: 'rd-title' }, plainTitle(session.project.meta)),
       slider, label,
       iconButton('back', 'Previous', () => go(-1)),
       h('span', { style: { display: 'inline-block', transform: 'scaleX(-1)' } }, iconButton('back', 'Next', () => go(1)))));
@@ -49,7 +49,9 @@ export async function openReader(ctx: ProjectCtx): Promise<void> {
   document.documentElement.requestFullscreen?.().catch(() => undefined);
 
   // index = first page of the current view
-  const start = preview.visiblePage()?.n ?? 0;
+  // (On a phone writing, the pages are out of sight: start from the page being written.)
+  const at = ctx.currentId();
+  const start = (preview.visible ? preview.visiblePage()?.n : at ? book.pageForLine(at, ctx.editor.caretLine())?.n : 0) ?? 0;
   let index = 0;
   const spreadStart = (i: number) => (!twoSided ? i : i === 0 ? 0 : i % 2 === 1 ? i : i - 1);
   index = spreadStart(start);
@@ -64,8 +66,9 @@ export async function openReader(ctx: ProjectCtx): Promise<void> {
     const ids = pagesAt(index);
     const wPx = ps.w * 96;
     const hPx = ps.h * 96;
-    const availH = window.innerHeight - 52 - 48;
-    const availW = window.innerWidth - 80;
+    const narrow = window.innerWidth < 600;
+    const availH = window.innerHeight - 52 - (narrow ? 24 : 48);
+    const availW = window.innerWidth - (narrow ? 16 : 80);
     const scale = Math.min(availH / hPx, availW / (wPx * ids.length));
     spread.replaceChildren(...ids.map((n, k) => {
       const box = h('div', { class: `rd-page ${ids.length === 2 ? (k === 0 ? 'left' : 'right') : ''} ${n === null ? 'empty' : ''}`, style: { width: `${wPx * scale}px`, height: `${hPx * scale}px` } });
@@ -98,6 +101,17 @@ export async function openReader(ctx: ProjectCtx): Promise<void> {
     else if (e.key === 'End') { index = spreadStart(refs.length - 1); paint(); }
   }
 
+  // Swipe to turn pages on a touch screen.
+  let swipe: { x: number; y: number } | null = null;
+  stage.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') swipe = { x: e.clientX, y: e.clientY }; });
+  stage.addEventListener('pointerup', (e) => {
+    if (!swipe) return;
+    const dx = e.clientX - swipe.x;
+    const dy = e.clientY - swipe.y;
+    swipe = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
+  });
+  stage.addEventListener('pointercancel', () => { swipe = null; });
   prevZone.addEventListener('click', () => go(-1));
   nextZone.addEventListener('click', () => go(1));
   slider.addEventListener('input', () => { index = spreadStart(Number(slider.value)); paint(); });

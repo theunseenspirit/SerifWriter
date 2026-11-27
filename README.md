@@ -36,8 +36,47 @@ whole app, fonts included, is cached by its service worker.
   Its log is `serifwriter.log`.
 * **Safari (macOS Sonoma):** open the address and choose *File ▸ Add to Dock*. Everything works
   except mirroring to a folder (Safari doesn't support it) — use zip backups there.
-* You can also host the `dist/` folder on any static host (GitHub Pages, Netlify). Your writing
-  still never leaves your machine.
+* You can also host the `dist/` folder on any static host. This repository publishes itself to
+  GitHub Pages for the iPhone (below). Your writing still never leaves your machine.
+
+## On your iPhone
+
+SerifWriter also runs on an iPhone (or iPad) as a Home Screen app, published from this repository
+to GitHub Pages at **https://theunseenspirit.github.io/SerifWriter/**.
+
+1. Open that address in **Safari** and tap *Share* ▸ *Add to Home Screen*.
+2. Open SerifWriter from the Home Screen. From then on it opens with no connection, and it updates
+   itself whenever a new version is published (every merge into the default branch publishes one).
+
+**Once, before the first install:** GitHub Pages has to be switched on for the repository. On
+GitHub, open the repository's *Settings ▸ Pages*, set *Source* to **GitHub Actions**, then open
+*Actions ▸ Publish the app ▸ Run workflow*. After that every merge publishes on its own.
+
+Add it to the Home Screen *before* you write: books written in a Safari tab stay in Safari's
+storage, separate from the Home Screen app's. Your writing stays on the phone — only the app is
+published.
+
+On the phone the writing room shows one pane at a time, **Write** or **Pages**, with the contents in
+a drawer (the sidebar button, top left) and everything else under ⋯. A row of keys above the
+keyboard gives what a phone keyboard lacks: ⇥ and ⇤ to indent or outdent a line (Tab and ⇧Tab),
+∴ ¬ ∧ ∨ → ↔ ∀ ∃ □ ◇ ⊢ and the full symbol list, bold, italic, a footnote and a citation; ⌄ puts
+the keyboard away. LaTeX names work as on the Mac (`\forall` and a space gives ∀). Tap a page in
+*Pages* to write at that paragraph. *Design* opens as a sheet over the pages, so each change shows
+as you make it. Turn the phone sideways for a wider editor; *Read* turns pages with a swipe.
+
+### Moving a book between your Mac and your iPhone
+
+Each device keeps its own books — there is no server to sync through. To carry a book across:
+
+1. On the Mac, in the library: ⋯ on the book ▸ *Download this book (.zip)*, then AirDrop the file
+   to your iPhone (or save it to iCloud Drive).
+2. On the iPhone: *Import* ▸ *Backup (.zip)…* and pick it in Files.
+3. To bring it back: on the iPhone, ⋯ on the book ▸ *Save or send this book (.zip)…* opens the share
+   sheet (AirDrop to your Mac, or Save to Files); then *Import* it on the Mac.
+
+When the book is already there, the import says which copy was edited more recently before you
+choose *Replace* or *Keep both*, and a version of the copy being replaced is saved in History first,
+so nothing is lost either way.
 
 ## Your words are safe
 
@@ -61,7 +100,7 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 | `---` on its own line, with a blank line before it | a scene-break ornament |
 | `\forall`, `\neg`, `\to`, `\Box`, `\vdash`, `\therefore` + space | ∀ ¬ → □ ⊢ ∴ — logic and philosophy symbols by their LaTeX names (not inside math or code) |
 | `{^Plato}`, `{^Plato!Republic}` | an index entry (prints nothing) — and a subentry |
-| <kbd>Tab</kbd> at the start of a line | an indented line, set one per line — premises, propositions, verse (two tabs: further in) |
+| <kbd>Tab</kbd> at the start of a line | an indented line, set one per line — premises, propositions, verse (two tabs: further in; ⇥ on the iPhone) |
 | `Text.[^1]` … `[^1]: The note.` | a footnote at the foot of the page (or chapter endnotes) |
 | `Text.^[The note, inline.]` | the same footnote, written in place |
 | `# Heading` at the top of a chapter | the chapter's title (the opening page) |
@@ -75,6 +114,14 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 | `Table: Results {#tbl:res}` beside a table | Table 1. Results — a numbered caption above it |
 | `$$ … $$ {#eq:gauss}` | an equation numbered (1) |
 | `@fig:map`, `[see @tbl:res]`, `@eq:gauss` | Figure 1, see Table 1, Equation (1) |
+
+**Paragraphs and line breaks** (*Design ▸ Typography*): by default a book is set like a printed
+one — a blank line starts a new paragraph with its first line indented, and a single Return runs on
+into the same paragraph, as in Markdown. Turn off **Indent new paragraphs** to set every paragraph
+flush left, and turn on **Return starts a new line** to make each Return a new line in the book.
+With both, the text is set line for line as you typed it: premises, propositions, verse, addresses.
+**Space between paragraphs** sets paragraphs apart with space instead of an indent. All three are
+kept per book and carried into the PDF, EPUB, Word and HTML exports.
 
 **Book details** are YAML front matter in the *Title Page* section (or *Book details* in the top bar):
 

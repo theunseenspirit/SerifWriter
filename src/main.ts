@@ -11,6 +11,7 @@ import { renderHome } from './ui/home.ts';
 import { openProjectView, closeProjectView, getProjectCtx } from './ui/project.ts';
 import { toast } from './ui/dialogs.ts';
 import { projectFromSingleMarkdown } from './storage/serialize.ts';
+import { trackViewport, syncThemeColor } from './ui/viewport.ts';
 
 // Boot: open the database, replay the crash journal, then route.
 
@@ -40,6 +41,7 @@ async function doRoute(): Promise<void> {
 }
 
 async function boot(): Promise<void> {
+  trackViewport();
   injectFontFaces();
   try {
     await openDB();
@@ -53,6 +55,8 @@ async function boot(): Promise<void> {
 
   const theme = await repo.kvGet<string>('theme');
   if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+  syncThemeColor();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeColor);
 
   const recovered = await recoverJournal().catch(() => 0);
   setCustomTemplates(await repo.listCustomTemplates());

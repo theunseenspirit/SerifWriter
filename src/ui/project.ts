@@ -1,7 +1,7 @@
 import type { Project, Section, SectionKind } from '../model/types.ts';
 import * as repo from '../db/repo.ts';
 import { h, icon, iconButton, button } from './dom.ts';
-import { confirmDialog, modal, promptDialog, toast } from './dialogs.ts';
+import { confirmDialog, modal, promptDialog, toast, showMenu } from './dialogs.ts';
 import { ProjectSession, type SaveState } from '../storage/session.ts';
 import { SnapshotScheduler, createSnapshot } from '../storage/snapshots.ts';
 import { mirror } from '../storage/mirror.ts';
@@ -13,8 +13,11 @@ import { KINDS, defaultContent, makeSection, plainTitle, sectionTitle } from '..
 import { effectiveSettings, pageSize } from '../templates/index.ts';
 import { debounce, uid, formatRelative } from '../util.ts';
 import { splitFrontMatter, withFrontMatter } from '../md/frontmatter.ts';
+import { isPhone, onPhoneChange } from './viewport.ts';
 
-// The writing room: sidebar | editor | live preview.
+// The writing room: sidebar | editor | live preview. On a phone: one pane at a
+// time (Write or Pages), the contents in a drawer, and a row of writing keys
+// above the keyboard for what a phone keyboard lacks (Tab, symbols, ⌘B…).
 
 export interface ProjectCtx {
   session: ProjectSession;
@@ -27,6 +30,8 @@ export interface ProjectCtx {
   relayout: () => Promise<void>;
   flush: () => Promise<void>;
   snapshot: (label: string) => Promise<void>;
+  /** Phone layout: show the editor or the pages. */
+  pane: (which: 'write' | 'pages') => void;
 }
 
 let active: { close: () => Promise<void> } | null = null;
@@ -62,7 +67,17 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
 
   // ───────── components ─────────
   const preview = new Preview({
-    onJump: (sid, line) => { select(sid, false); requestAnimationFrame(() => editor.goToLine(line)); },
+    onJump: (sid, line) => {
+      if (isPhone()) {
+        if (document.querySelector('.drawer')) return; // Design is open over the pages: a tap there is for looking
+        // A tap on a page opens that paragraph for writing, without throwing the keyboard up.
+        select(sid, false);
+        showPane('write');
+        requestAnimationFrame(() => editor.goToLine(line, false));
+        return;
+      }
+      select(sid, false); requestAnimationFrame(() => editor.goToLine(line));
+    },
     onZoom: (zoom, spread) => { session.project.ui.previewZoom = zoom; session.project.ui.spread = spread; session.markProjectDirty(); },
   });
   const book = new BookLayout(preview.view);
@@ -78,8 +93,13 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
 
   const sidebar = new Sidebar({
     onStats: () => void openStats(),
-    onSelect: (id) => select(id),
-    onJump: (id, line) => { select(id, false); requestAnimationFrame(() => { editor.goToLine(line); preview.follow(id, line); }); },
+    onSelect: (id) => { select(id); closeDrawer(); },
+    onJump: (id, line) => {
+      select(id, false);
+      closeDrawer();
+      if (isPhone() && view.classList.contains('pane-pages')) { requestAnimationFrame(() => preview.reveal(id, line)); return; }
+      requestAnimationFrame(() => { editor.goToLine(line, !isPhone()); preview.follow(id, line); });
+    },
     onReorder: (ids) => { session.reorder(ids); renderSidebar(); book.updateSections(session.project, session.sections, [], currentId || undefined); },
     onAdd: (kind, after) => void addSection(kind, after),
     onRename: (id) => void renameSection(id),
@@ -109,30 +129,80 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   const offMirror2 = mirror.onChange(paintMirror);
   paintMirror();
 
-  const toggleSidebar = iconButton('sidebar', 'Show or hide the sidebar (⌘\\)', () => setPane('sidebar'));
-  const togglePreview = iconButton('preview', 'Show or hide the page preview', () => setPane('preview'));
-  const designBtn = button('Design', { icon: 'design', onClick: async () => (await import('./design.ts')).openDesign(ctx) });
-  const historyBtn = button('History', { icon: 'history', onClick: async () => (await import('./history.ts')).openHistory(ctx) });
-  const exportBtn = button('Export', { icon: 'export', onClick: async () => (await import('./exportDialog.ts')).openExport(ctx, exportBtn) });
-  const readBtn = button('Read', { icon: 'read', onClick: async () => (await import('./reader.ts')).openReader(ctx), title: 'Read the typeset book full-screen' });
-  const findBtn = iconButton('search', 'Find & replace in the whole book (⌘F)', () => void openFind());
+  const toggleSidebar = iconButton('sidebar', 'Show or hide the sidebar (⌘\\)', () => setPane('sidebar'), 'pj-contents');
+  const togglePreview = iconButton('preview', 'Show or hide the page preview', () => setPane('preview'), 'pj-preview');
+  const openDesign = async () => (await import('./design.ts')).openDesign(ctx);
+  const openHistory = async () => (await import('./history.ts')).openHistory(ctx);
+  const openExport = async () => (await import('./exportDialog.ts')).openExport(ctx, exportBtn);
+  const openRead = async () => (await import('./reader.ts')).openReader(ctx);
+  const openSymbols = async () => (await import('./symbolPicker.ts')).openSymbolPicker(ctx);
+  const openCite = async () => (await import('./citePicker.ts')).openCitePicker(ctx);
+  const designBtn = button('Design', { icon: 'design', class: 'pj-design', onClick: () => void openDesign() });
+  const historyBtn = button('History', { icon: 'history', class: 'pj-history', onClick: () => void openHistory() });
+  const exportBtn = button('Export', { icon: 'export', class: 'pj-export', onClick: () => void openExport() });
+  const readBtn = button('Read', { icon: 'read', class: 'pj-read', onClick: () => void openRead(), title: 'Read the typeset book full-screen' });
+  const findBtn = iconButton('search', 'Find & replace in the whole book (⌘F)', () => void openFind(), 'pj-find');
   const openFind = async () => (await import('./find.ts')).openFind(ctx);
   const openStats = async () => { await flush(); (await import('./stats.ts')).openStats(ctx); };
-  const statsBtn = iconButton('chart', 'Writing stats: your habits and your prose', () => void openStats());
-  const focusBtn = iconButton('focus', 'Focus mode (⌘⇧F)', () => toggleFocus());
+  const statsBtn = iconButton('chart', 'Writing stats: your habits and your prose', () => void openStats(), 'pj-stats');
+  const focusBtn = iconButton('focus', 'Focus mode (⌘⇧F)', () => toggleFocus(), 'pj-focus');
   const back = h('a', { class: 'btn icon pj-back', href: '#/', title: 'Library', 'aria-label': 'Back to library' }, icon('back'));
+
+  // Phone: Write | Pages, and everything else in one menu.
+  const writeTab = h('button', { class: 'pj-seg-btn', type: 'button', 'aria-pressed': 'true' }, 'Write');
+  const pagesTab = h('button', { class: 'pj-seg-btn', type: 'button', 'aria-pressed': 'false' }, 'Pages');
+  writeTab.addEventListener('click', () => showPane('write'));
+  pagesTab.addEventListener('click', () => showPane('pages'));
+  const seg = h('div', { class: 'pj-seg', role: 'group', 'aria-label': 'Show' }, writeTab, pagesTab);
+  const moreBtn: HTMLButtonElement = iconButton('more', 'More', () => showMenu(moreBtn, [
+    { label: 'Find & replace', icon: 'search', onClick: () => void openFind() },
+    { label: 'Insert a symbol', icon: 'keyboard', onClick: () => void openSymbols() },
+    { label: 'Insert a citation', icon: 'book', onClick: () => void openCite() },
+    { label: 'Writing stats', icon: 'chart', onClick: () => void openStats() },
+    { separator: true, label: '' },
+    { label: 'Design', icon: 'design', onClick: () => void openDesign() },
+    { label: 'History', icon: 'history', onClick: () => void openHistory() },
+    { label: 'Export', icon: 'export', onClick: () => void openExport() },
+    { label: 'Read', icon: 'read', onClick: () => void openRead() },
+    { separator: true, label: '' },
+    { label: 'Book details…', icon: 'edit', onClick: () => void bookDetails() },
+  ]), 'pj-more');
 
   const topbar = h('header', { class: 'pj-bar' },
     back, toggleSidebar, titleBtn, saveState, mirrorWarn,
     h('div', { class: 'pj-spacer' }),
-    findBtn, statsBtn, designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview);
+    findBtn, statsBtn, designBtn, historyBtn, exportBtn, readBtn, focusBtn, togglePreview, seg, moreBtn);
 
   const resizer = h('div', { class: 'pj-resizer', role: 'separator', 'aria-orientation': 'vertical', title: 'Drag to resize' });
   const statusbar = h('button', { class: 'pj-status', type: 'button', title: 'Writing stats' });
   statusbar.addEventListener('click', () => void openStats());
-  const editorCol = h('div', { class: 'pj-editor' }, editor.el, statusbar);
+  // Writing keys (phone): pressing one never takes the caret out of the text, so the keyboard stays up.
+  const key = (label: string, title: string, run: () => void, cls = '') => {
+    const b = h('button', { class: `pj-key ${cls}`, type: 'button', title, 'aria-label': title }, label);
+    for (const ev of ['pointerdown', 'mousedown']) b.addEventListener(ev, (e) => e.preventDefault());
+    b.addEventListener('click', () => run());
+    return b;
+  };
+  const sym = (c: string, name: string) => key(c, name, () => editor.insert(c), 'sym');
+  const keys = h('div', { class: 'pj-keys', role: 'toolbar', 'aria-label': 'Writing keys' },
+    h('div', { class: 'pj-keys-scroll' },
+      key('⇥', 'Indent the line (Tab)', () => editor.command('indent')),
+      key('⇤', 'Outdent the line (⇧Tab)', () => editor.command('outdent')),
+      h('span', { class: 'pj-keys-sep' }),
+      sym('∴', 'Therefore'), sym('¬', 'Not'), sym('∧', 'And'), sym('∨', 'Or'), sym('→', 'If… then'), sym('↔', 'If and only if'),
+      sym('∀', 'For all'), sym('∃', 'There exists'), sym('□', 'Necessarily'), sym('◇', 'Possibly'), sym('⊢', 'Proves'),
+      key('Symbols', 'All symbols', () => void openSymbols(), 'ui'),
+      h('span', { class: 'pj-keys-sep' }),
+      key('B', 'Bold', () => editor.command('bold'), 'b'),
+      key('I', 'Italic', () => editor.command('italic'), 'i'),
+      key('Note', 'Footnote here', () => editor.command('note'), 'ui'),
+      key('Cite', 'Insert a citation', () => void openCite(), 'ui')),
+    key('⌄', 'Hide the keyboard', () => editor.ta.blur(), 'done'));
+  const editorCol = h('div', { class: 'pj-editor' }, editor.el, keys, statusbar);
   const layout = h('div', { class: 'pj-main' }, sidebar.el, editorCol, resizer, preview.el);
-  const view = h('div', { class: 'project' }, topbar, layout);
+  const sbBackdrop = h('div', { class: 'sb-backdrop', 'aria-hidden': 'true' });
+  sbBackdrop.addEventListener('click', () => closeDrawer());
+  const view = h('div', { class: 'project' }, topbar, layout, sbBackdrop);
   root.replaceChildren(view);
   document.body.className = 'route-project';
   document.title = `${plainTitle(project.meta)} — SerifWriter`;
@@ -229,7 +299,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
       paintStatus();
     }
     if (scrollPreview) preview.showSection(id);
-    editor.focus();
+    if (!isPhone()) editor.focus(); // on a phone that would throw the keyboard over the page
   }
 
   // Saves trigger snapshots and the folder mirror.
@@ -392,11 +462,40 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
 
   // ───────── panes & modes ─────────
   function setPane(which: 'sidebar' | 'preview'): void {
+    if (isPhone()) {
+      if (which === 'sidebar') toggleDrawer();
+      else showPane(view.classList.contains('pane-pages') ? 'write' : 'pages');
+      return;
+    }
     const cls = which === 'sidebar' ? 'no-sidebar' : 'no-preview';
     const hidden = view.classList.toggle(cls);
     session.project.ui[which] = !hidden;
     session.markProjectDirty();
     if (which === 'preview' && !hidden) preview.apply();
+  }
+
+  // Phone: the contents slide in over the page; picking a section closes them.
+  function toggleDrawer(open = !view.classList.contains('sb-open')): void {
+    view.classList.toggle('sb-open', open);
+    toggleSidebar.classList.toggle('on', open);
+    if (open) { editor.ta.blur(); (sidebar.el.querySelector('.sb-item.on') as HTMLElement | null)?.scrollIntoView({ block: 'nearest' }); }
+  }
+  function closeDrawer(): void { if (view.classList.contains('sb-open')) toggleDrawer(false); }
+
+  // Phone: one pane at a time.
+  function showPane(which: 'write' | 'pages'): void {
+    const pages = which === 'pages';
+    view.classList.toggle('pane-pages', pages);
+    writeTab.setAttribute('aria-pressed', String(!pages));
+    pagesTab.setAttribute('aria-pressed', String(pages));
+    if (!pages) return;
+    editor.ta.blur();
+    flushEditor();
+    previewSync.flush(); // typeset what was just written
+    preview.apply();
+    // Open the pages where you are writing.
+    const at = currentId;
+    if (at) requestAnimationFrame(() => preview.reveal(at, editor.caretLine()));
   }
 
   function toggleFocus(force?: boolean): void {
@@ -417,6 +516,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     return false;
   }
   const onDocKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && view.classList.contains('sb-open') && !document.querySelector('dialog[open]')) { closeDrawer(); return; }
     if (e.target === editor.ta) return;
     if (document.querySelector('dialog[open]')) return;
     shortcut(e.key, e);
@@ -468,15 +568,24 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
       renderSidebar();
     },
     snapshot: async (label) => { await flush(); await createSnapshot(session.project, session.sections, { auto: false, label }); },
+    pane: (which) => showPane(which),
   };
   currentCtx = ctx;
+
+  // Turning a phone sideways or resizing a window can switch layouts mid-session.
+  const applyPhone = (phone: boolean) => {
+    sidebar.foldOnReselect = !phone;
+    if (!phone) { closeDrawer(); preview.apply(); }
+  };
+  applyPhone(isPhone());
+  const offPhone = onPhoneChange(applyPhone);
 
   // ───────── start ─────────
   editor.ta.lang = project.meta.language || 'en'; // spellcheck in the book's language
   renderSidebar();
   if (currentId) editor.load(session.byId.get(currentId)!);
   paintStatus();
-  editor.focus();
+  if (!isPhone()) editor.focus();
 
   repo.kvGet<number>('previewDelay').then((d) => { if (d) previewDelay = d; });
 
@@ -492,7 +601,7 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
       window.removeEventListener('pagehide', onHide);
       document.removeEventListener('visibilitychange', onVis);
       document.removeEventListener('keydown', onDocKey);
-      offSave(); offMirror(); offMirror2();
+      offSave(); offMirror(); offMirror2(); offPhone();
       preview.destroy();
       book.destroy();
       for (const u of assetUrls.values()) URL.revokeObjectURL(u);

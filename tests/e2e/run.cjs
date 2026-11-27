@@ -116,6 +116,29 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   check('writing stats show today’s words and the habit charts', stats.tiles >= 9 && /^\+\d/.test(stats.today) && stats.charts >= 3, JSON.stringify(stats));
   await page.keyboard.press('Escape');
 
+  // ── paragraphs: indenting off, and Return starting a new line ──
+  await page.locator('.editor-ta').press('Control+End');
+  await page.keyboard.type('\n\nP1. All men are mortal.\nP2. Socrates is a man.\n\nC. So Socrates is mortal.');
+  await page.waitForTimeout(1600);
+  await idle(page);
+  const indentOf = () => page.evaluate(() => { const p = Array.from(document.querySelectorAll('.pv-root .pg-content p')).find((x) => x.textContent.startsWith('C. So Socrates')); return p ? getComputedStyle(p).textIndent : null; });
+  const runOn = () => page.evaluate(() => Array.from(document.querySelectorAll('.pv-root .pg-content p')).some((p) => p.innerHTML.includes('P1. All men are mortal.<br>')));
+  const indentBefore = await indentOf();
+  const brBefore = await runOn();
+  await page.getByRole('button', { name: 'Design' }).click();
+  await page.locator('.ds-toggle', { hasText: 'Indent new paragraphs' }).locator('input').uncheck();
+  await page.locator('.ds-toggle', { hasText: 'Return starts a new line' }).locator('input').check();
+  await page.waitForTimeout(900);
+  await idle(page);
+  const indentAfter = await indentOf();
+  check('“Indent new paragraphs” off sets every paragraph flush left', indentBefore && indentBefore !== '0px' && indentAfter === '0px', `${indentBefore} → ${indentAfter}`);
+  check('“Return starts a new line” keeps a single Return as a new line', !brBefore && (await runOn()));
+  check('and the settings are kept with the book', JSON.stringify(await page.evaluate(() => window.serifwriter.project().session.project.overrides.type)) === '{"autoIndent":false,"lineBreaks":true}');
+  await page.locator('.ds-toggle', { hasText: 'Space between paragraphs' }).locator('input').check();
+  check('space between paragraphs greys out the indent toggle', await page.locator('.ds-toggle', { hasText: 'Indent new paragraphs' }).locator('input').isDisabled());
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.overrides = {}; return c.relayout(); });
+
   // ── service worker: works offline ──
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
@@ -279,6 +302,9 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
 
   check('no uncaught page errors', errors.length === 0, errors.slice(0, 3).join(' / '));
   await context.close();
+
+  // ── on an iPhone ──
+  await require('./phone.cjs')(URL, check);
   const failed = results.filter((r) => !r.ok).length;
   console.log(`\n${results.length - failed}/${results.length} passed`);
   process.exit(failed ? 1 : 0);

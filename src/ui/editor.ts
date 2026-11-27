@@ -30,7 +30,7 @@ export class Editor {
     }) as HTMLTextAreaElement;
     this.hint = h('div', { class: 'editor-hint' });
     this.el = h('div', { class: 'editor' }, this.hint, h('div', { class: 'editor-scroll' }, this.ta));
-    this.ta.addEventListener('input', () => opts.onInput());
+    this.ta.addEventListener('input', (e) => { this.symbolOnInput(e as InputEvent); opts.onInput(); });
     this.ta.addEventListener('keydown', (e) => this.onKey(e));
     for (const ev of ['keyup', 'pointerup', 'select']) this.ta.addEventListener(ev, () => opts.onCursor());
     this.ta.addEventListener('scroll', () => opts.onCursor(), { passive: true });
@@ -74,7 +74,7 @@ export class Editor {
     return n;
   }
 
-  goToLine(line: number): void {
+  goToLine(line: number, focus = true): void {
     const v = this.ta.value;
     let pos = 0;
     for (let i = 0; i < line; i++) {
@@ -82,7 +82,7 @@ export class Editor {
       if (nl === -1) break;
       pos = nl + 1;
     }
-    this.ta.focus({ preventScroll: true });
+    if (focus) this.ta.focus({ preventScroll: true });
     this.ta.setSelectionRange(pos, pos);
     // Scroll so the line is about a third from the top.
     const before = v.slice(0, pos);
@@ -104,6 +104,36 @@ export class Editor {
       this.ta.setRangeText(text, this.ta.selectionStart, this.ta.selectionEnd, 'end');
       this.opts.onInput();
     }
+  }
+
+  /** Commands for on-screen keys: a phone keyboard has no Tab or ⌘. */
+  command(cmd: 'indent' | 'outdent' | 'bold' | 'italic' | 'note' | 'index'): void {
+    if (cmd === 'indent' || cmd === 'outdent') {
+      const e = { shiftKey: cmd === 'outdent', preventDefault() {} } as KeyboardEvent;
+      if (!this.indentList(e)) this.shiftLines(e.shiftKey);
+    } else if (cmd === 'bold') this.wrap('**', '**', 'bold');
+    else if (cmd === 'italic') this.wrap('*', '*', 'italic');
+    else if (cmd === 'note') this.wrap('^[', ']', 'Note.');
+    else this.markIndex();
+  }
+
+  /**
+   * \forall + space → ∀ for keyboards that report no key (iOS predictive text,
+   * Android): the name is replaced once the space or punctuation is in. The
+   * keydown path normally gets there first, leaving nothing to do here.
+   */
+  private replacing = false;
+  private symbolOnInput(e: InputEvent): void {
+    if (this.replacing || e.inputType !== 'insertText' || !e.data || e.data.length !== 1 || /[A-Za-z]/.test(e.data)) return;
+    const pos = this.ta.selectionStart;
+    if (pos !== this.ta.selectionEnd || this.ta.value[pos - 1] !== e.data) return;
+    const sym = symbolBefore(this.ta.value, pos - 1);
+    if (!sym) return;
+    this.replacing = true;
+    try {
+      this.ta.setSelectionRange(sym.start, pos);
+      this.insert(sym.prefix && e.data === ' ' ? sym.char : sym.char + e.data);
+    } finally { this.replacing = false; }
   }
 
   private wrap(before: string, after = before, placeholder = ''): void {
@@ -199,10 +229,16 @@ export class Editor {
     e.preventDefault();
     const { selectionStart: a, selectionEnd: b, value: v } = this.ta;
     if (a === b && !e.shiftKey && v.slice(v.lastIndexOf('\n', a - 1) + 1, a).trim()) { this.insert('\t'); return; }
+    this.shiftLines(e.shiftKey);
+  }
+
+  /** Indents (or outdents) the caret's line, or every selected line, by one tab. */
+  private shiftLines(out: boolean): void {
+    const { selectionStart: a, selectionEnd: b, value: v } = this.ta;
     const start = v.lastIndexOf('\n', a - 1) + 1;
     const end = b > a && v[b - 1] === '\n' ? b - 1 : Math.max(b, v.indexOf('\n', b) < 0 ? v.length : v.indexOf('\n', b));
     const before = v.slice(start, end);
-    const after = before.split('\n').map((l) => (e.shiftKey ? l.replace(/^(\t| {1,4})/, '') : `\t${l}`)).join('\n');
+    const after = before.split('\n').map((l) => (out ? l.replace(/^(\t| {1,4})/, '') : `\t${l}`)).join('\n');
     if (after === before) return;
     this.ta.setSelectionRange(start, end);
     this.insert(after);

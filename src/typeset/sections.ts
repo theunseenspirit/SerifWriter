@@ -372,26 +372,26 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
     }
     case 'copyright': {
       const c = h('div', 'fixed-content copyright-page');
-      c.appendChild(renderMarkdown(fillTokens(fm.body, ctx.meta, s), { lang, lineOffset, cite: ctx.cite }));
+      c.appendChild(renderMarkdown(fillTokens(fm.body, ctx.meta, s), { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks }));
       return { ...base, fixed: c };
     }
     case 'dedication': {
       const c = h('div', 'fixed-content dedication-page');
       const body = h('div', 'ded-body');
-      body.appendChild(renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite }));
+      body.appendChild(renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks }));
       c.appendChild(body);
       return { ...base, fixed: c };
     }
     case 'epigraph': {
       const c = h('div', 'fixed-content epigraph-page');
-      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks });
       epigraph(frag);
       c.appendChild(frag);
       return { ...base, fixed: c };
     }
     case 'part': {
       const c = h('div', 'fixed-content part-page');
-      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks });
       let titleHtml = escapeHtml(fmString(fm.data.title) || sec.title);
       const firstHeading = frag.firstElementChild;
       if (firstHeading && /^H[1-6]$/.test(firstHeading.tagName)) { titleHtml = firstHeading.innerHTML; firstHeading.remove(); }
@@ -440,7 +440,7 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
     }
     default: {
       const numbered = sec.kind === 'chapter';
-      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite });
+      const frag = renderMarkdown(fm.body, { lang, lineOffset, cite: ctx.cite, breaks: !!s.type.lineBreaks });
       const flow = processFlow(frag, ctx, sec, set, numbered);
       const titleHtml = fm.data.title ? renderInline(fmString(fm.data.title), lang) : flow.leadTitle ?? escapeHtml(sec.title || 'Untitled');
       const sub = fm.data.subtitle ? renderInline(fmString(fm.data.subtitle), lang) : flow.leadSub;

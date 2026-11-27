@@ -136,6 +136,10 @@ export interface TemplateSettings {
     hyphenate: boolean;
     indent: number; // em
     paragraphStyle: 'indent' | 'block';
+    /** Indent the first line of each new paragraph (off: every paragraph starts flush left). Default on. */
+    autoIndent?: boolean;
+    /** A single Return starts a new line, instead of running on into the same paragraph. Default off. */
+    lineBreaks?: boolean;
     oldstyleNums: boolean;
     abbrSmallCaps?: boolean; // NATO, UNESCO in small capitals
   };

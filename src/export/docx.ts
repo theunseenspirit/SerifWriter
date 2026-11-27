@@ -1,7 +1,7 @@
 import type { Project, Section } from '../model/types.ts';
 import { collectBook, xmlEscape as x, extFor, type FlowSection } from './common.ts';
 import { FONTS } from '../typeset/fonts.ts';
-import { pageSize } from '../templates/index.ts';
+import { pageSize, paragraphIndent, indentsParagraphs } from '../templates/index.ts';
 import { roundedWords } from '../model/words.ts';
 
 // DOCX (Office Open XML), written by hand: styles that follow the template,
@@ -287,7 +287,7 @@ export async function exportDocx(project: Project, sections: Section[]): Promise
   const w = new DocxWriter(textW);
   const font = manuscript ? 'Times New Roman' : FONTS[s.type.body].name;
   const display = manuscript ? font : FONTS[s.type.display].name;
-  const indentTw = Math.round(s.type.indent * s.type.size * 20);
+  const indentTw = Math.round(paragraphIndent(s) * s.type.size * 20);
   const sceneGlyph = s.sceneBreak === 'hash' ? '#' : s.sceneBreak === 'stars' ? '* * *' : s.sceneBreak === 'space' ? '' : '⁂';
   const meta = project.meta;
   const words = sections.reduce((n, x) => n + (x.kind === 'title' || x.kind === 'toc' ? 0 : x.words), 0);
@@ -381,7 +381,7 @@ ${exts.map((e) => `<Default Extension="${e}" ContentType="${mime[e] || 'applicat
     'docProps/app.xml': enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>SerifWriter</Application><Words>${words}</Words></Properties>`),
     'word/document.xml': enc.encode(documentXml),
-    'word/styles.xml': enc.encode(stylesXml(font, display, manuscript ? 12 : s.type.size, manuscript ? 2 : s.type.leading, manuscript ? 720 : indentTw, manuscript ? false : s.type.justify, s.color.accent, manuscript)),
+    'word/styles.xml': enc.encode(stylesXml(font, display, manuscript ? 12 : s.type.size, manuscript ? 2 : s.type.leading, manuscript ? (indentsParagraphs(s) ? 720 : 0) : indentTw, manuscript ? false : s.type.justify, s.color.accent, manuscript)),
     'word/settings.xml': enc.encode(settingsXml),
     'word/numbering.xml': enc.encode(NUMBERING.replace('__NUMS__', w.nums.join('\n'))),
     'word/footnotes.xml': enc.encode(footnotesXml),
