@@ -407,7 +407,7 @@ export function renderSection(sec: Section, ctx: RenderCtx): Rendered {
       const blocks: HTMLElement[] = [];
       for (const e of ctx.toc) {
         if ((e.kind === 'sub' && s.tocDepth < 2) || (e.kind === 'subsub' && s.tocDepth < 3)) continue;
-        const row = h('div', `toc-entry toc-${e.kind}`);
+        const row = h('div', `toc-entry toc-${e.kind}${(e.kind === 'sub' || e.kind === 'subsub') && !e.hnum ? ' toc-nonum' : ''}`);
         const label = h('span', 'toc-label');
         if (e.kind === 'chapter') label.dataset.tocLabel = e.id;
         if (e.hnum) { label.dataset.tocHnum = e.hnum; if (e.inChapter) label.dataset.chap = '1'; label.textContent = e.hnum; }

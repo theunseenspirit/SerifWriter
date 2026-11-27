@@ -1,5 +1,6 @@
 /* Modern Literary — flush-left openings, big numerals, quiet running heads. */
 .tpl-modern {
+  --toc-title-x: 2em; /* chapter-number column on the contents page */
   & .pg-head { font-size: 8pt; letter-spacing: .16em; text-transform: uppercase; }
   & .pg-head .pg-fh { letter-spacing: 0; font-size: 9.5pt; text-transform: none; }
   & .pg-foot { font-size: 9.5pt; }
