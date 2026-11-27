@@ -48,6 +48,10 @@ to GitHub Pages at **https://theunseenspirit.github.io/SerifWriter/**.
 2. Open SerifWriter from the Home Screen. From then on it opens with no connection, and it updates
    itself whenever a new version is published (every merge into the default branch publishes one).
 
+**Once, before the first install:** GitHub Pages has to be switched on for the repository. On
+GitHub, open the repository's *Settings ▸ Pages*, set *Source* to **GitHub Actions**, then open
+*Actions ▸ Publish the app ▸ Run workflow*. After that every merge publishes on its own.
+
 Add it to the Home Screen *before* you write: books written in a Safari tab stay in Safari's
 storage, separate from the Home Screen app's. Your writing stays on the phone — only the app is
 published.
