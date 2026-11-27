@@ -199,9 +199,9 @@ Six templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`):
   right, `Surname / TITLE / page` header, word count on the cover page.
 * **Ornate Victorian** — Libre Baskerville, ruled running heads, scrollwork, framed title page.
 * **Pocket Edition** — 5 × 8, EB Garamond with Cormorant display, italic heads, roman numerals.
-* **Scholarly Monograph** — a university-press interior: 6 × 9, EB Garamond, numbered sections
-  (2.1, 2.1.1), author–date citations, page footnotes, flush-left openings, chapter and section running
-  heads, small capitals for abbreviations.
+* **Scholarly Monograph** — a university-press interior: 6 × 9, EB Garamond, author–date citations,
+  page footnotes, flush-left openings, chapter and section running heads, small capitals for
+  abbreviations. Sections are unnumbered, so you can number them yourself.
 
 *Design* adjusts everything: accent presets or any colour, ink and paper, text and display fonts
 (Cardo, EB Garamond, Crimson Pro, Libre Baskerville, Cormorant — all bundled, all offline), size,
