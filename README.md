@@ -275,9 +275,12 @@ export and import as `.json`.
 
 * **PDF** — print-ready, the exact preview pages at trim size with embedded fonts, through the
   browser's print engine (choose *Save as PDF* in Chrome). Optional ⅛″ bleed (outside, top, bottom).
+  Export checks the margins against Amazon KDP's minimums for the book's page count (the inside
+  margin grows from 0.375″ to 0.875″ as a paperback gets thicker) and says so before you print.
 * **EPUB 3** — reflowable, fonts embedded, nav, popup footnotes, images, MathML.
 * **DOCX** — Word styles, real footnotes (citation notes included), lists, tables, images, Word
-  drop caps, page setup. Math is kept as its TeX source.
+  drop caps, page setup. Math is kept as its TeX source. Arguments use an *Argument* style: the
+  label, a tab, and the statement hanging at a fixed indent, so an editor can restyle them at once.
 * **HTML** — one self-contained file (fonts and images inside).
 * **Markdown** — the whole book in one `.md` with front matter (a `.zip` if it has images);
   citations stay as `[@key]` and the bibliography as a `bibtex` block, ready for Pandoc. Line

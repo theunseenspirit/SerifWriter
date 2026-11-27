@@ -148,7 +148,18 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await idle(page);
   const arg = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root p.arg-line')).map((p) => [p.querySelector('.arg-label').textContent.trim(), p.textContent.replace(/^\S+\s+/, '')]));
   check('Syllogism sets each premise and the conclusion on its own labelled line, citations left inline', JSON.stringify(arg) === '[["P1","All men are mortal."],["P2","Socrates is a man."],["C","So Socrates is mortal. (P1, P2)"]]', JSON.stringify(arg));
-  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.templateId = 'classic'; return c.relayout(); });
+  // Publishing: Word gets arguments as a hanging "Argument" style (label, tab, text); Export warns of margins a printer would reject.
+  await page.locator('.pj-bar').getByRole('button', { name: 'Export' }).click();
+  check('Export raises no margin warning for a template as designed', await page.locator('.exp-warn').count() === 0);
+  const [argDocx] = await Promise.all([page.waitForEvent('download'), page.locator('.exp-list > *', { hasText: 'Word document' }).getByRole('button', { name: 'Download' }).click()]);
+  const argXml = strFromU8(unzipSync(fs.readFileSync(await argDocx.path()))['word/document.xml']);
+  check('Word sets each premise in a hanging Argument style: label, tab, text', /<w:pStyle w:val="Argument"\/>(?:<w:keepNext\/>)?<\/w:pPr><w:r>(?:<w:rPr>.*?<\/w:rPr>)?<w:t xml:space="preserve">P1<\/w:t><\/w:r><w:r><w:tab\/><\/w:r>/.test(argXml), (argXml.match(/.{0,80}>P1<.{0,120}/) || [''])[0]);
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.overrides = { page: { margins: { inside: 0.3 } } }; return c.relayout(); });
+  await page.locator('.pj-bar').getByRole('button', { name: 'Export' }).click();
+  check('Export warns when the inside margin is too narrow to print', /inside margin \(0\.3 in\) is narrower than the 0\.375 in Amazon KDP asks/.test(await page.locator('.exp-warn').textContent()));
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.templateId = 'classic'; c.session.project.overrides = {}; return c.relayout(); });
   await idle(page);
 
   // ── service worker: works offline ──
