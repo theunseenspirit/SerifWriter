@@ -99,7 +99,7 @@ page understands `{author} {title} {year} {thisYear} {publisher} {font}`.
 *Design ▸ Headings*), part divider, chapter, unnumbered chapter (preface, afterword…),
 about the author, bibliography. Drag to reorder, or select one and press ⌥↑ / ⌥↓.
 The selected one also shows its own sections (`## `) and subsections (`### `), indented
-beneath it; click one to jump there.
+beneath it; click one to jump there. Click the selected entry again to fold them away.
 
 ### Citations and bibliography
 

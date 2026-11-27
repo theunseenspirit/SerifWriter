@@ -197,6 +197,12 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   const caretLine = await page.locator('.editor-ta').evaluate((ta) => ta.value.slice(0, ta.selectionStart).split('\n').length - 1);
   const premiseLine = (await textOf(page)).split('\n').indexOf('### A Premise');
   check('a heading in the outline jumps the editor to it', caretLine === premiseLine, `${caretLine} vs ${premiseLine}`);
+  await page.locator('.sb-item', { hasText: 'A Third Chapter' }).click();
+  await page.waitForTimeout(500);
+  check('clicking the selected chapter folds its headings away', await page.locator('.sb-sub', { hasText: 'The Argument' }).count() === 0);
+  await page.locator('.sb-item', { hasText: 'A Third Chapter' }).click();
+  await page.waitForTimeout(500);
+  check('and clicking it again brings them back', await page.locator('.sb-outline.open .sb-sub', { hasText: 'The Argument' }).count() === 1);
   await idle(page);
   const toc = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root .toc-entry .toc-title')).map((e) => e.textContent));
   check('contents page lists the new chapter', toc.includes('A Third Chapter'), toc.join(' | '));
