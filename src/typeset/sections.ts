@@ -260,9 +260,9 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
         span.dataset.hnum = hn;
         el.prepend(span);
       }
-      // In a book of arguments, a section's own number (1.3) hangs in the column of its labels (P1, C).
+      // In a book of arguments, a section's own number (## 2.5 …) is marked, for the running head (§ 2.5).
       const own = s.type.arguments && !s.numberHeadings && (role === 'section' || role === 'subsection') ? /^(\d+(?:\.\d+)*)\.?\s+/.exec(el.innerHTML) : null;
-      if (own) { el.innerHTML = `<span class="h-lead">${own[1]} </span>${el.innerHTML.slice(own[0].length)}`; el.classList.add('h-hang'); }
+      if (own) el.innerHTML = `<span class="h-lead">${own[1]}\u2002</span>${el.innerHTML.slice(own[0].length)}`;
       if (role === 'section' || role === 'subsection') {
         const id = `${sec.id}:h${++n}`;
         el.dataset.tocId = id;

@@ -148,7 +148,6 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await idle(page);
   const arg = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root p.arg-line')).map((p) => [p.querySelector('.arg-label').textContent.trim(), p.textContent.replace(/^\S+\s+/, '')]));
   check('Syllogism sets each premise and the conclusion on its own labelled line, citations left inline', JSON.stringify(arg) === '[["P1","All men are mortal."],["P2","Socrates is a man."],["C","So Socrates is mortal. (P1, P2)"]]', JSON.stringify(arg));
-  check('section titles are never split across pages', await page.evaluate(() => document.querySelectorAll('.pv-root .h-section').length > 0 && !document.querySelector('.pv-root .h-section.sw-cont')));
   await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.templateId = 'classic'; return c.relayout(); });
   await idle(page);
 
@@ -251,6 +250,7 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   check('a drop cap opens running prose, not a single short line', drops['The First Light'].startsWith('true') && drops['A Third Chapter'].startsWith('false'), JSON.stringify(drops));
   const tocX = await page.evaluate(() => { const x = (sel) => document.querySelector(`.pv-root ${sel} .toc-title`)?.getBoundingClientRect().left ?? 0; return { chapter: x('.toc-chapter'), section: x('.toc-sub') }; });
   check('contents page indents sections from their chapter', tocX.section > tocX.chapter + 5, JSON.stringify(tocX));
+  check('section titles are kept whole, never split across pages', await page.evaluate(() => { const hs = Array.from(document.querySelectorAll('.pv-root .h-section')); return hs.length > 0 && hs.every((x) => x.classList.contains('sw-atomic') && !x.classList.contains('sw-cont')); }));
   await page.locator('.sb-item', { hasText: 'A Third Chapter' }).click({ button: 'right' });
   await page.locator('.menu-item', { hasText: 'Delete' }).click();
   await page.locator('dialog .btn.danger').click();

@@ -256,9 +256,9 @@ Seven templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`
 * **Syllogism** — the Scholarly Monograph page for books of arguments, kept plain. A paragraph
   whose lines start with labels — `P1:`, `A3:`, `R1:`, `C:` — is set as an argument: each premise
   and conclusion on its own line, the label in a column and the text hanging beside it, citations
-  such as `(1.6)` left inline as written. Section titles are in sentence case, their numbers
-  (`## 1.3 …`) hanging in the page margin; the running head is the number alone (`§ 1.3`), and a
-  title never breaks across pages. Any template can lay out arguments with *Design ▸ Paragraphs &
+  such as `(1.6)` left inline as written. Section titles are in sentence case; a numbered one
+  (`## 1.3 …`) gives the running head its number alone (`§ 1.3`), and a title never breaks across
+  pages. Any template can lay out arguments with *Design ▸ Paragraphs &
   line breaks ▸ Lay out arguments*.
 
 *Design* adjusts everything: accent presets or any colour, ink and paper, text and display fonts

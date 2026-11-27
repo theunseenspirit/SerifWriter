@@ -165,8 +165,7 @@
 .sw-book .pg-content p.ind + p:not(.ind) { text-indent: 0; margin-top: calc(var(--lh) * .5em); }
 .sw-book .pg-content :not(.ind) + p.ind { margin-top: calc(var(--lh) * .5em); }
 /* Arguments (type.arguments), set plainly: each premise and conclusion on its own line, its label in
-   a column and the text hanging beside it. A section's own number hangs out in the page margin, so
-   its title and the argument's labels start at the margin together. */
+   a column at the margin and the text hanging beside it. */
 .sw-book .pg-content { --arg-col: 2.6em; }
 .sw-book .pg-content p.arg-line { margin: 0; padding-left: var(--arg-col); text-indent: calc(-1 * var(--arg-col)); text-align: left; hyphens: manual; -webkit-hyphens: manual; font-variant-numeric: lining-nums; } /* (1.11, P2), not (I.II, P2) */
 .sw-book .pg-content p.arg-line.sw-cont { text-indent: 0; }
@@ -174,9 +173,7 @@
 .sw-book .pg-content :not(.arg-line) + p.arg-line, .sw-book .pg-content p.arg-line + :not(.arg-line) { margin-top: calc(var(--lh) * .6em); }
 .sw-book .pg-content p.arg-line + p:not(.arg-line) { text-indent: 0; }
 .sw-book .arg-label { display: inline-block; width: var(--arg-col); text-indent: 0; font-variant-numeric: lining-nums tabular-nums; }
-/* The number sits out in the margin, so the title itself starts at the margin. */
-.sw-book .pg-content .h-hang { padding-left: 0; text-indent: calc(-1 * var(--arg-col)); }
-.sw-book .pg-content .h-hang .h-lead { display: inline-block; width: var(--arg-col); text-indent: 0; font-variant-numeric: lining-nums tabular-nums; }
+.sw-book .pg-content .h-lead { font-variant-numeric: lining-nums; }
 .sw-book .pg-content p.tbl-cap { text-indent: 0; text-align: center; font-size: .85em; margin-top: calc(var(--lh) * .5em); }
 .sw-book .pg-content p.tbl-cap + table { margin-top: .3em; }
 .sw-book .cap-label { font-style: normal; font-variant-caps: small-caps; letter-spacing: .03em; }
