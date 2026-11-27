@@ -59,8 +59,9 @@ published.
 On the phone the writing room shows one pane at a time, **Write** or **Pages**, with the contents in
 a drawer (the sidebar button, top left) and everything else under ⋯. A row of keys above the
 keyboard gives what a phone keyboard lacks: ⇥ and ⇤ to indent or outdent a line (Tab and ⇧Tab),
-∴ ¬ ∧ ∨ → ↔ ∀ ∃ □ ◇ ⊢ and the full symbol list, bold, italic, a footnote and a citation; ⌄ puts
-the keyboard away. LaTeX names work as on the Mac (`\forall` and a space gives ∀). Tap a page in
+bold, italic, a footnote and a citation; ⌄ puts the keyboard away. *Symbols ›* swaps in a row of
+logic symbols (∴ ∵ ¬ ∧ ∨ → ↔ ∀ ∃ □ ◇ ⊢ ⊨ ⊥) and *All…* for the full list; ‹ goes back. ⋯ also
+has *Indent new paragraphs* and *Return starts a new line* as one-tap toggles. LaTeX names work as on the Mac (`\forall` and a space gives ∀). Tap a page in
 *Pages* to write at that paragraph. *Design* opens as a sheet over the pages, so each change shows
 as you make it. Turn the phone sideways for a wider editor; *Read* turns pages with a swipe.
 
@@ -115,7 +116,7 @@ lists and task lists, tables, `` `code` `` and fenced code, links, autolinks, fo
 | `$$ … $$ {#eq:gauss}` | an equation numbered (1) |
 | `@fig:map`, `[see @tbl:res]`, `@eq:gauss` | Figure 1, see Table 1, Equation (1) |
 
-**Paragraphs and line breaks** (*Design ▸ Typography*): by default a book is set like a printed
+**Paragraphs and line breaks** (*Design ▸ Paragraphs & line breaks*, or ⋯ on the iPhone): by default a book is set like a printed
 one — a blank line starts a new paragraph with its first line indented, and a single Return runs on
 into the same paragraph, as in Markdown. Turn off **Indent new paragraphs** to set every paragraph
 flush left, and turn on **Return starts a new line** to make each Return a new line in the book.

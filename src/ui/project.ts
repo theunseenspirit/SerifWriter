@@ -10,7 +10,7 @@ import { Editor } from './editor.ts';
 import { Sidebar } from './sidebar.ts';
 import { Preview } from './preview.ts';
 import { KINDS, defaultContent, makeSection, plainTitle, sectionTitle } from '../model/defaults.ts';
-import { effectiveSettings, pageSize } from '../templates/index.ts';
+import { effectiveSettings, pageSize, indentsParagraphs, setBookSetting } from '../templates/index.ts';
 import { debounce, uid, formatRelative } from '../util.ts';
 import { splitFrontMatter, withFrontMatter } from '../md/frontmatter.ts';
 import { isPhone, onPhoneChange } from './viewport.ts';
@@ -154,19 +154,33 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
   writeTab.addEventListener('click', () => showPane('write'));
   pagesTab.addEventListener('click', () => showPane('pages'));
   const seg = h('div', { class: 'pj-seg', role: 'group', 'aria-label': 'Show' }, writeTab, pagesTab);
-  const moreBtn: HTMLButtonElement = iconButton('more', 'More', () => showMenu(moreBtn, [
-    { label: 'Find & replace', icon: 'search', onClick: () => void openFind() },
-    { label: 'Insert a symbol', icon: 'keyboard', onClick: () => void openSymbols() },
-    { label: 'Insert a citation', icon: 'book', onClick: () => void openCite() },
-    { label: 'Writing stats', icon: 'chart', onClick: () => void openStats() },
-    { separator: true, label: '' },
-    { label: 'Design', icon: 'design', onClick: () => void openDesign() },
-    { label: 'History', icon: 'history', onClick: () => void openHistory() },
-    { label: 'Export', icon: 'export', onClick: () => void openExport() },
-    { label: 'Read', icon: 'read', onClick: () => void openRead() },
-    { separator: true, label: '' },
-    { label: 'Book details…', icon: 'edit', onClick: () => void bookDetails() },
-  ]), 'pj-more');
+  // The paragraph settings as one-tap toggles (also in Design ▸ Paragraphs & line breaks).
+  const paragraphSetting = (path: 'type.autoIndent' | 'type.lineBreaks', on: boolean) => {
+    setBookSetting(session.project, path, on);
+    session.markProjectDirty();
+    void ctx.relayout();
+    toast(path === 'type.autoIndent' ? (on ? 'New paragraphs are indented.' : 'New paragraphs start flush left, not indented.')
+      : (on ? 'Each Return now starts a new line.' : 'A single Return runs on; a blank line starts a new paragraph.'), { timeout: 2400 });
+  };
+  const moreBtn: HTMLButtonElement = iconButton('more', 'More', () => {
+    const s = effectiveSettings(session.project);
+    showMenu(moreBtn, [
+      { label: 'Find & replace', icon: 'search', onClick: () => void openFind() },
+      { label: 'Insert a symbol', icon: 'keyboard', onClick: () => void openSymbols() },
+      { label: 'Insert a citation', icon: 'book', onClick: () => void openCite() },
+      { label: 'Writing stats', icon: 'chart', onClick: () => void openStats() },
+      { separator: true, label: '' },
+      { label: 'Indent new paragraphs', checked: indentsParagraphs(s), disabled: s.type.paragraphStyle === 'block', onClick: () => paragraphSetting('type.autoIndent', !indentsParagraphs(s)) },
+      { label: 'Return starts a new line', checked: !!s.type.lineBreaks, onClick: () => paragraphSetting('type.lineBreaks', !s.type.lineBreaks) },
+      { separator: true, label: '' },
+      { label: 'Design', icon: 'design', onClick: () => void openDesign() },
+      { label: 'History', icon: 'history', onClick: () => void openHistory() },
+      { label: 'Export', icon: 'export', onClick: () => void openExport() },
+      { label: 'Read', icon: 'read', onClick: () => void openRead() },
+      { separator: true, label: '' },
+      { label: 'Book details…', icon: 'edit', onClick: () => void bookDetails() },
+    ]);
+  }, 'pj-more');
 
   const topbar = h('header', { class: 'pj-bar' },
     back, toggleSidebar, titleBtn, saveState, mirrorWarn,
@@ -184,20 +198,34 @@ export async function openProjectView(root: HTMLElement, project: Project): Prom
     return b;
   };
   const sym = (c: string, name: string) => key(c, name, () => editor.insert(c), 'sym');
+  const sep = () => h('span', { class: 'pj-keys-sep' });
+  // First the line and format keys; the symbols are one level down, behind "Symbols ›".
+  const mainKeys = h('div', { class: 'pj-keys-scroll', role: 'group', 'aria-label': 'Writing keys' },
+    key('⇥', 'Indent the line (Tab)', () => editor.command('indent')),
+    key('⇤', 'Outdent the line (⇧Tab)', () => editor.command('outdent')),
+    sep(),
+    key('B', 'Bold', () => editor.command('bold'), 'b'),
+    key('I', 'Italic', () => editor.command('italic'), 'i'),
+    sep(),
+    key('Note', 'Footnote here', () => editor.command('note'), 'ui'),
+    key('Cite', 'Insert a citation', () => void openCite(), 'ui'),
+    sep(),
+    key('Symbols ›', 'Symbols', () => showKeys('symbols'), 'ui sub'));
+  const symbolKeys = h('div', { class: 'pj-keys-scroll', role: 'group', 'aria-label': 'Symbols', hidden: true },
+    key('‹', 'Back to the writing keys', () => showKeys('main'), 'back'),
+    sep(),
+    sym('∴', 'Therefore'), sym('∵', 'Because'), sym('¬', 'Not'), sym('∧', 'And'), sym('∨', 'Or'), sym('→', 'If… then'), sym('↔', 'If and only if'),
+    sym('∀', 'For all'), sym('∃', 'There exists'), sym('□', 'Necessarily'), sym('◇', 'Possibly'), sym('⊢', 'Proves'), sym('⊨', 'Entails'), sym('⊥', 'Contradiction'),
+    sep(),
+    key('All…', 'All symbols', () => void openSymbols(), 'ui'));
+  const showKeys = (which: 'main' | 'symbols') => {
+    mainKeys.hidden = which !== 'main';
+    symbolKeys.hidden = which === 'main';
+    (which === 'main' ? mainKeys : symbolKeys).scrollLeft = 0;
+  };
   const keys = h('div', { class: 'pj-keys', role: 'toolbar', 'aria-label': 'Writing keys' },
-    h('div', { class: 'pj-keys-scroll' },
-      key('⇥', 'Indent the line (Tab)', () => editor.command('indent')),
-      key('⇤', 'Outdent the line (⇧Tab)', () => editor.command('outdent')),
-      h('span', { class: 'pj-keys-sep' }),
-      sym('∴', 'Therefore'), sym('¬', 'Not'), sym('∧', 'And'), sym('∨', 'Or'), sym('→', 'If… then'), sym('↔', 'If and only if'),
-      sym('∀', 'For all'), sym('∃', 'There exists'), sym('□', 'Necessarily'), sym('◇', 'Possibly'), sym('⊢', 'Proves'),
-      key('Symbols', 'All symbols', () => void openSymbols(), 'ui'),
-      h('span', { class: 'pj-keys-sep' }),
-      key('B', 'Bold', () => editor.command('bold'), 'b'),
-      key('I', 'Italic', () => editor.command('italic'), 'i'),
-      key('Note', 'Footnote here', () => editor.command('note'), 'ui'),
-      key('Cite', 'Insert a citation', () => void openCite(), 'ui')),
-    key('⌄', 'Hide the keyboard', () => editor.ta.blur(), 'done'));
+    mainKeys, symbolKeys,
+    key('⌄', 'Hide the keyboard', () => { showKeys('main'); editor.ta.blur(); }, 'done'));
   const editorCol = h('div', { class: 'pj-editor' }, editor.el, keys, statusbar);
   const layout = h('div', { class: 'pj-main' }, sidebar.el, editorCol, resizer, preview.el);
   const sbBackdrop = h('div', { class: 'sb-backdrop', 'aria-hidden': 'true' });
