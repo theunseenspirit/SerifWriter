@@ -133,10 +133,8 @@ function isPlainParagraph(el: Element): boolean {
   return text.length > 0 && !el.querySelector('img');
 }
 
-// Arguments: a line opening with a label — P1:, A3:, R1., C: — is a premise, assumption, rule or
-// conclusion; a closing (1.6) or (P1, P2, R1) is where it comes from.
+// Arguments: a line opening with a label — P1:, A3:, R1., C: — is a premise, assumption, rule or conclusion.
 const ARG_LABEL = /^\s*([A-Z]{1,2}\d{0,3}'*)\s*[:.]\s+/;
-const ARG_SOURCE = /\s*\(((?:\s*(?:\d+(?:\.\d+)*|[A-Z]{1,2}\d{0,3}'*)\s*,?)+)\)\s*$/;
 const argLines = (el: Element | undefined): string[] | null => {
   if (!el || !isPlainParagraph(el)) return null;
   const lines = el.innerHTML.split(/<br\s*\/?>\s*/);
@@ -145,7 +143,7 @@ const argLines = (el: Element | undefined): string[] | null => {
 
 /**
  * A paragraph whose every line is labelled (or a labelled line among others) becomes an argument:
- * one block per premise or conclusion, its label in a column, its source set to the right.
+ * one block per premise or conclusion, its label in a column and the text hanging beside it.
  */
 function argument(el: HTMLElement, prev?: Element, next?: Element): HTMLElement[] | null {
   const lines = argLines(el);
@@ -153,18 +151,12 @@ function argument(el: HTMLElement, prev?: Element, next?: Element): HTMLElement[
   const first = Number(el.dataset.line || 0);
   const out = lines.map((line, k) => {
     const m = ARG_LABEL.exec(line)!;
-    let text = line.slice(m[0].length);
-    const src = ARG_SOURCE.exec(text);
-    if (src) text = text.slice(0, src.index);
-    const p = h('p', `arg-line ${m[1].startsWith('C') ? 'arg-concl' : 'arg-prem'}`,
-      // The source comes first so it floats beside the statement's first line, where the text makes room for it.
-      `<span class="arg-label">${m[1]} </span>${src ? `<span class="arg-src"><span class="arg-paren">(</span>${src[1].trim()}<span class="arg-paren">) </span></span>` : ''}${text}`);
+    const p = h('p', `arg-line ${m[1].startsWith('C') ? 'arg-concl' : 'arg-prem'}`, `<span class="arg-label">${m[1]} </span>${line.slice(m[0].length)}`);
     if (el.dataset.line) p.dataset.line = String(first + k);
     return p;
   });
-  // The argument's last line, when a conclusion, is its final one: ruled off, and never alone atop a page.
-  const last = out[out.length - 1];
-  if (last.classList.contains('arg-concl')) { last.classList.add('arg-final'); out[out.length - 2]?.classList.add('keep-next'); }
+  // A final conclusion never starts a page alone.
+  if (out[out.length - 1].classList.contains('arg-concl')) out[out.length - 2]?.classList.add('keep-next');
   return out;
 }
 
@@ -260,7 +252,7 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
       continue;
     }
     if (role) {
-      el.classList.add(`h-${role}`);
+      el.classList.add(`h-${role}`, 'sw-atomic'); // a heading is never split across pages
       if (s.numberHeadings && (role === 'section' || role === 'subsection')) {
         if (role === 'section') { num[0]++; num[1] = 0; } else num[1]++;
         const hn = role === 'section' ? String(num[0]) : `${num[0]}.${num[1]}`;
@@ -268,9 +260,9 @@ function processFlow(frag: DocumentFragment, ctx: RenderCtx, sec: Section, set: 
         span.dataset.hnum = hn;
         el.prepend(span);
       }
-      // In a book of arguments, a section's own number (1.3) hangs in the column of its labels (P1, C).
+      // In a book of arguments, a section's own number (## 2.5 …) is marked, for the running head (§ 2.5).
       const own = s.type.arguments && !s.numberHeadings && (role === 'section' || role === 'subsection') ? /^(\d+(?:\.\d+)*)\.?\s+/.exec(el.innerHTML) : null;
-      if (own) { el.innerHTML = `<span class="h-lead">${own[1]} </span>${el.innerHTML.slice(own[0].length)}`; el.classList.add('h-hang'); }
+      if (own) el.innerHTML = `<span class="h-lead">${own[1]}\u2002</span>${el.innerHTML.slice(own[0].length)}`;
       if (role === 'section' || role === 'subsection') {
         const id = `${sec.id}:h${++n}`;
         el.dataset.tocId = id;
