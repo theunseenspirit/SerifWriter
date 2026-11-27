@@ -146,9 +146,9 @@ const idle = (page) => page.waitForFunction(() => { const c = window.serifwriter
   await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.templateId = 'syllogism'; return c.relayout(); });
   await page.waitForTimeout(800);
   await idle(page);
-  const arg = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root p.arg-line')).map((p) => ({ label: p.querySelector('.arg-label').textContent.trim(), src: p.querySelector('.arg-src')?.textContent.trim() || '', rule: getComputedStyle(p).backgroundImage !== 'none', text: p.textContent.includes('All men are mortal.') || p.textContent.includes('Socrates') })));
-  const seen = arg.length ? '' : await page.evaluate(() => [document.querySelector('.pv-root').className, ...Array.from(document.querySelectorAll('.pv-root p')).filter((x) => /All men|Socrates is/.test(x.textContent)).map((x) => x.innerHTML.slice(0, 160))].join(' || '));
-  check('Syllogism sets each premise and the conclusion apart, with its source and a rule above the conclusion', JSON.stringify(arg.map((a) => [a.label, a.src, a.rule])) === '[["P1","",false],["P2","",false],["C","(P1, P2)",true]]' && arg.every((a) => a.text), JSON.stringify(arg) + seen);
+  const arg = await page.evaluate(() => Array.from(document.querySelectorAll('.pv-root p.arg-line')).map((p) => [p.querySelector('.arg-label').textContent.trim(), p.textContent.replace(/^\S+\s+/, '')]));
+  check('Syllogism sets each premise and the conclusion on its own labelled line, citations left inline', JSON.stringify(arg) === '[["P1","All men are mortal."],["P2","Socrates is a man."],["C","So Socrates is mortal. (P1, P2)"]]', JSON.stringify(arg));
+  check('section titles are never split across pages', await page.evaluate(() => document.querySelectorAll('.pv-root .h-section').length > 0 && !document.querySelector('.pv-root .h-section.sw-cont')));
   await page.evaluate(() => { const c = window.serifwriter.project(); c.session.project.templateId = 'classic'; return c.relayout(); });
   await idle(page);
 

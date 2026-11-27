@@ -421,10 +421,12 @@ export class BookLayout {
         if (hs) {
           // "§1.4 Certainty": the full number, marked so it isn't read as a page number
           const hnum = hs.querySelector<HTMLElement>('.h-num')?.dataset.hnum;
+          const own = hs.querySelector('.h-lead')?.textContent?.trim(); // a number written into the title (## 2.5 …)
           const t = hs.cloneNode(true) as HTMLElement;
-          t.querySelectorAll('.h-num, .idx, .fn-ref').forEach((x) => x.remove());
+          t.querySelectorAll('.h-num, .h-lead, .idx, .fn-ref').forEach((x) => x.remove());
           const title = (t.textContent || '').trim();
-          secHead = hnum ? `§${sec.kind === 'chapter' ? `${chapterNo}.${hnum}` : hnum}\u2002${title}` : title;
+          // A section numbered by its writer is headed by its number alone: "§ 2.5".
+          secHead = own ? `§\u2009${own}` : hnum ? `§${sec.kind === 'chapter' ? `${chapterNo}.${hnum}` : hnum}\u2002${title}` : title;
         }
 
         const isOpener = page.dataset.opener === '1' || page.dataset.fixed === '1' || i === 0 && !!(st.pages![0].querySelector('.opener'));

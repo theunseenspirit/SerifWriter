@@ -1,7 +1,7 @@
 {
   "id": "syllogism",
   "name": "Syllogism",
-  "description": "For books of arguments: the Scholarly Monograph page, with each premise and conclusion set apart — labels in a column, text hanging beneath them, sources such as (1.6) to the right, and a rule above each conclusion.",
+  "description": "For books of arguments: the Scholarly Monograph page, kept plain. Each premise and conclusion on its own line, its label (P1, C) in a column with the text beside it, and section numbers in the margin.",
   "cover": {"leather": "#2B2F36", "foil": "#D9CFB4", "style": "cloth"},
   "accentPresets": [
     {"name": "Slate", "value": "#3A4A5C"},

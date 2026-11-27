@@ -1,8 +1,8 @@
-/* Syllogism — the Scholarly Monograph page (its stylesheet is shared), with quieter section titles:
-   in sentence case and a medium weight rather than spaced small capitals, their numbers hanging in
-   the column of the argument labels, so every premise, conclusion and section starts on one edge. */
+/* Syllogism — the Scholarly Monograph page (its stylesheet is shared), kept plain: section titles in
+   sentence case and a medium weight rather than spaced small capitals, their numbers hanging out in
+   the margin, so titles and argument labels share one edge. */
 .tpl-syllogism {
   & .h-section { font-variant-caps: normal; letter-spacing: 0; font-weight: 500; line-height: 1.3; margin: calc(var(--lh) * 1.4em) 0 calc(var(--lh) * .5em) !important; }
   & .h-subsection { line-height: 1.3; }
-  & .h-lead { color: var(--accent); font-weight: 400; }
+  & .h-lead { font-weight: 400; }
 }
