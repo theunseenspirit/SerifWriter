@@ -15,6 +15,7 @@ import pocketCss from './pocket/template.css?raw';
 import scholarlyJson from './scholarly/template.json';
 import scholarlyCss from './scholarly/template.css?raw';
 import syllogismJson from './syllogism/template.json';
+import syllogismCss from './syllogism/template.css?raw';
 
 const builtIn = (json: any, css: string): TemplateDef => ({ ...json, builtIn: true, base: json.id, css });
 
@@ -26,7 +27,7 @@ export const BUILT_IN: TemplateDef[] = [
   builtIn(pocketJson, pocketCss),
   builtIn(scholarlyJson, scholarlyCss),
   // Syllogism wears the Scholarly Monograph page; its arguments are laid out by the shared book styles.
-  builtIn(syllogismJson, scholarlyCss.replaceAll('.tpl-scholarly', '.tpl-syllogism')),
+  builtIn(syllogismJson, scholarlyCss.replaceAll('.tpl-scholarly', '.tpl-syllogism') + syllogismCss),
 ];
 
 export const PAGE_SIZES: Record<PageSizeId, { w: number; h: number; label: string }> = {

@@ -253,11 +253,13 @@ Seven templates, each a folder of **JSON settings + CSS** (`src/templates/<id>/`
 * **Scholarly Monograph** — a university-press interior: 6 × 9, EB Garamond, author–date citations,
   page footnotes, flush-left openings, chapter and section running heads, small capitals for
   abbreviations. Sections are unnumbered, so you can number them yourself.
-* **Syllogism** — the Scholarly Monograph page for books of arguments. A paragraph whose lines
-  start with labels — `P1:`, `A3:`, `R1:`, `C:` — is set as an argument: each premise and
-  conclusion on its own, the label in a column and the text hanging beneath it, sources such as
-  `(1.6)` or `(P1, P2, R1)` to the right, and a rule above each conclusion that follows premises.
-  Any template can do the same with *Design ▸ Paragraphs & line breaks ▸ Lay out arguments*.
+* **Syllogism** — the Scholarly Monograph page for books of arguments, set quietly. A paragraph
+  whose lines start with labels — `P1:`, `A3:`, `R1:`, `C:` — is set as an argument, indented under
+  its section: each premise and conclusion on its own, the label in a pale column and the text
+  hanging beneath it, a source such as `(1.6)` or `(P1, P2, R1)` small and pale beside the first
+  line, and one hairline only, above the final conclusion. Section titles are in sentence case, their
+  numbers (`## 1.3 …`) hanging in the margin so titles start where the labels do. Any template can
+  lay out arguments with *Design ▸ Paragraphs & line breaks ▸ Lay out arguments*.
 
 *Design* adjusts everything: accent presets or any colour, ink and paper, text and display fonts
 (Cardo, EB Garamond, Crimson Pro, Libre Baskerville, Cormorant — all bundled, all offline), size,
